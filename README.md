@@ -225,7 +225,7 @@ ip link
 # Observe que não conseguimos mais visualizar as interfaces de rede do hosts, apenas as interfaces de rede configuradas no namespace
 # Verificar o acesso do container ao IP 1.1.1.1, através do comando `ping`
 ping 1.1.1.1
-# Observe que não conseguimos acessar o IP 1.1.1.1. Isso ocorre por conta de termos desabilitado o roteamento de pacotes de rede através do Kernel Linux
+# Observe que não conseguimos acessar o IP 1.1.1.1, ou seja, não recebemos resposta dessa máquina 1.1.1.1. Para interromper o ping, pressionar `Ctrl+C`, finalizando o comando ping em execução. Isso ocorre por conta de termos desabilitado o roteamento de pacotes de rede através do Kernel Linux
 exit
 ```
 ### No host
@@ -237,13 +237,19 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ```
 ### No container
 ```shell
-# Verificar o acesso do container ao IP 1.1.1.1, através do comando `ping`
+# Verificar o acesso do container ao IP 1.1.1.1, através do comando `ping`. Para interromper o ping, pressionar `Ctrl+C`.
 ping 1.1.1.1
-# Verificar o acesso do container ao www.google.com, através do comando `ping`
+# Verificar o acesso do container ao www.google.com, através do comando `ping`. Para interromper o ping, pressionar `Ctrl+C`.
 ping www.google.com
 # Observe que conseguimos acessar o IP 1.1.1.1 e o domínio www.google.com
 exit
 ```
+Caso o ping para 1.1.1.1 e www.google.com não funcione, pode ser que na rede onde está sendo executado o lab, exista um bloqueio de firewall para o protocolo ICMP utilizado durante o ping. De maneira alternativa, substitua os pings realizados nos passos anteriores, utilizando o seguinte comando `ping` para testar a conectividade:
+```shell
+ping 192.168.56.1
+```
+Repita os passos a partir do comando `# Desabilitar o roteamento via Kernel Linux`.
+
 ### Para persistir a configuração net.ipv4.ip_forward
 ```shell
 # Salvar a configuração net.ipv4.ip_forward no arquivo /etc/sysctl.conf
