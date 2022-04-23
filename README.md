@@ -203,8 +203,6 @@ iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT
 iptables -I FORWARD -o meu-switch -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 ```
 
-https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT
-
 #### Montar arquivo de configuração DNS para o container
 ```shell
 # Criar um diretório para armazenar o arquivo de configuração DNS
@@ -361,3 +359,7 @@ mount --bind ./netns/cnt/resolv.conf ./fs/merged/etc/resolv.conf
 # Acesso ao container
 ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
 ```
+
+## Documentação de comandos shell
+Existe o site `explainshell.com` que podemos passar um comando shell através da seguinte URI: `https://explainshell.com/explain?cmd=<comando shell>`. Exemplo:
+`https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT`
