@@ -1,0 +1,322 @@
+# Laboratório de Microcontainer - Criação de containers Docker
+Nesse laboratório, iremos criar pods Kubernetes, utilizando o [microk8s](https://microk8s.io/) da Canonical para criação do cluster K8S, através de uma VM Ubuntu Server 20.04, criada no `lab01` utilizando VirtualBox. Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
+
+## 1. Preparação do ambiente para laboratório
+Para esse laboratório, precisaremos realizar a instalação do Microk8s no servidor (VM Ubuntu 20.04 criada no `lab01`), que chamaremos de `Node 1`.
+```shell
+# Obter o IP da rede interna da VM
+MEU_IP=$(ip route | grep 192.168.56 | awk '{print $9}' | sed 's/\./-/g')
+# Configurar o hostname do servidor01
+sudo hostnamectl set-hostname $MEU_IP.nip.io
+# Utilizaremos o gerenciador de pacotes snap para instalar o Microk8s
+sudo snap install microk8s --classic --channel=1.21/stable
+# Instalar o kubectl
+sudo snap install kubectl --classic --channel=1.23/stable
+```
+
+Para utilizarmos o microk8s sem usuário root, precisamos adicionar o grupo microk8s ao usuário ubuntu:
+```shell
+# Adicionar o usuário ubuntu ao grupo microk8s
+sudo usermod -a -G microk8s $USER
+# Mudar o owner do diretório de configurações do kubectl para o usuário ubuntu
+sudo chown -f -R $USER ~/.kube
+# Criar uma nova sessão do usuário ubuntu, para surtir os efeitos da inclusão no grupo microk8s
+su - $USER
+```
+
+Verificar se o cluster está funcionando:
+```shell
+# Obter status do cluster. Aguardar até que o comando nos responda com o status do cluster.
+microk8s status --wait-ready
+# Observar no topo da resposta desse comando, a mensagem `microk8s is running`. Isso significa que o cluster está funcionando.
+# Configurar o kubectl para administrar o cluster microk8s
+microk8s config > $HOME/.kube/config
+# Obter informações dos nós do cluster K8S
+kubectl get nodes
+# Observe que possuímos uma única instância de K8S
+```
+
+```shell
+# Habilitar recursos de storage, dns e ingress Nginx no cluster Microk8s
+sudo microk8s enable dns storage ingress
+```
+
+## 2. Kubernetes Hello-World
+### No Node 1
+Acessar a pasta home do usuário e criar a pasta lab03:
+```shell
+cd
+mkdir lab04
+cd lab04
+```
+
+Obter o hostname da VM que configuramos anteriormente:
+```shell
+echo $HOSTNAME
+```
+
+Exemplo de hostname: `192-168-56-102.nip.io`. Utilizaremos esse hostname para configurar nossa URL de acesso ao serviço Hello-World que iremos configurar. Guardar o seu hostname para uso nas etapas a seguir.
+
+`Observação`: cada espaço no arquivo de configuração faz diferença, dado que os arquivos de configuração serão criados utilizando o formato YAML. Criar os arquivos de configuração exatamente como mostrados nesse laboratório. Utilize ferramentas online de validação do YAML em caso de dúvidas, como exemplo o [YAML Checker](https://yamlchecker.com/).
+
+Após alterar cada arquivo de configuração, para salvar, seguir a seguinte sequência de comandos:
+- Pressione Ctrl+X
+- Pressione Y
+- Pressione Enter
+
+Criar o arquivo de configuração de volume para o nosso serviço:
+```shell
+nano pvc.yaml
+```
+Incluir o seguinte conteúdo:
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim # Permite criarmos volumes persistentes para nossos containers
+metadata:
+  name: hello-world-pvc # Nome da configuração de PVC
+  labels:
+    app: hello-world # Label aplicada no PVC criado, contendo o nome da aplicação
+spec:
+  accessModes:
+    - ReadWriteMany # Permite que vários containers acessem o mesmo volume persistente
+  resources:
+    requests:
+      storage: 1Gi # Limita o armazenamento em disco do volume em 1GB
+```
+
+
+Criar o arquivo de configuração de deployment para criação dos pods do nosso serviço:
+```shell
+nano deployment.yaml
+```
+Incluir o seguinte conteúdo:
+```yaml
+apiVersion: apps/v1
+kind: Deployment # Permite especificarmos nossos containers para execução do serviço Hello-World
+metadata:
+  name: hello-world-deployment # Nome da configuração de Deployment
+  labels:
+    app: hello-world # Label aplicada no Deployment criado, contendo o nome da aplicação
+spec:
+  replicas: 3 # Quantidade de réplicas do nosso serviço Hello-World
+  selector:
+    matchLabels:
+      app: hello-world # Indicamos para aplicar a configuração de réplicas para containers que possuem a label `app: hello-world`
+  template:
+    metadata:
+      labels:
+        app: hello-world # Label aplicada nos pods criados, contendo o nome da aplicação, utilizado pelo matchLabel acima
+    spec:
+      containers:
+        - name: hello-world # Nome do container
+          image: containertools/hello-world # Imagem do container
+          imagePullPolicy: "Always" # Indica que a imagem do container será sempre atualizada
+          ports:
+            - containerPort: 8080 # Porta do container
+              name: http-port # Nome da porta, para uso no arquivo de configuração do tipo Service
+          env: # Variáveis de ambiente a serem inseridas no container
+            - name: FILES_BASEPATH
+              value: /vol
+          volumeMounts: # Configuração de volumes para o container
+            - mountPath: /vol # Caminho do volume no container
+              name: hello-world-vol # Nome do volume a ser utilizado (conforme lista de volumes a seguir)
+      volumes: # Lista de volumes a serem utilizados em containers declarados acima
+        - name: hello-world-vol # Nome do volume
+          persistentVolumeClaim:
+            claimName: hello-world-pvc # Nome da configuração de PVC para esse volume
+      securityContext:
+        fsGroup: 0 # Muda o owner dos volumes montados em containers, para o usuário root
+        runAsUser: 0 # Executa o container utilizando o usuário root
+        # Obs.: Por questões de segurança, evitar utilizar o usuário root em ambiente produtivo
+```
+
+Criar o arquivo de configuração de service para acessarmos os pods do nosso serviço:
+```shell
+nano service.yaml
+```
+Incluir o seguinte conteúdo:
+```yaml
+apiVersion: v1
+kind: Service # Permite criarmos um serviço para acessarmos os pods criados pelo deployment, a partir de um único IP virtual
+metadata:
+  name: hello-world-service # Nome da configuração de Service
+  labels:
+    app: hello-world # Label aplicada no Service criado, contendo o nome da aplicação
+spec:
+  selector:
+    app: hello-world # Indicamos para distribuir requisições do service para pods que possuem a label `app: hello-world`
+  ports:
+  - name: http-sv-port # Nome da porta que iremos expor no service
+    port: 80 # Porta que iremos expor no service
+    targetPort: http-port # Porta dos pods que iremos distrubuir as requisições
+```
+Nesse exemplo, o service criado é do tipo `ClusterIP`, sendo acessível apenas de dentro do cluster K8S. Criaremos um `Ingress` para permitir o acesso ao nosso serviço de maneira externa ao cluster.
+
+Criar o arquivo de configuração de ingress para permitir acessarmos nosso serviço a partir da URL [http://hello-world-192-168-56-102.nip.io](http://hello-world-192-168-56-102.nip.io). Trocar o `host: hello-world-192-168-56-102.nip.io` pelo IP correspondente à sua VM (em caso de dúvida, executar o seguinte comando: `echo hello-world-$HOSTNAME` e trocar o `host` por esse valor apresentado pelo comando):
+```shell
+nano ingress.yaml
+```
+Incluir o seguinte conteúdo:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress # Permite criarmos um ingress para acessarmos nosso serviço de maneira externa ao cluster K8S
+metadata:
+  name: hello-world-ingress # Nome da configuração de Ingress
+spec:
+  rules:
+  - host: hello-world-192-168-56-102.nip.io # Host HTTP necessário para utilização desse ingress
+    http:
+      paths:
+      - path: / # Permite acesso a todos os recursos/páginas do nosso serviço (/qualquer/caminho/possivel)
+        pathType: Prefix # Indica que o path indicado acima, trata-se de um prefixo da URL requisitada
+        backend:
+          service:
+            name: hello-world-service # Nome do service que será direcionada a requisição
+            port:
+              number: 80 # Porta do service que será direcionada a requisição
+```
+
+Aplicar as configurações criadas:
+```shell
+# Aplicar a configuração de PVC (hello-world-pvc)
+kubectl apply -f pvc.yaml
+# Aplicar a configuração de Deployment (hello-world-deployment)
+kubectl apply -f deployment.yaml
+# Aplicar a configuração de Service (hello-world-service)
+kubectl apply -f service.yaml
+# Aplicar a configuração de Ingress (hello-world-ingress)
+kubectl apply -f ingress.yaml
+# Para aplicar todos os arquivos .yaml da pasta corrente, utilizar o seginte comando:
+kubectl apply -f .
+```
+
+Para listar as configurações aplicadas:
+```shell
+# Listar os recursos PVC criados
+kubectl get pvc
+# Listar os recursos PV criados
+kubectl get pv
+# Listar os recursos Deployment criados
+kubectl get deployment
+# Listar os recursos Service criados
+kubectl get service
+# Listar os recursos Ingress criados
+kubectl get ingress
+# Listar os pods criados
+kubectl get pods
+# Para maiores detalhes em cada comando `kubectl get` executado acima, adicionar o parâmetro `-o wide`. Exemplo:
+kubectl get deployment -o wide
+# Para acompanhar a subida das 3 réplicas de pod especificadas no deployment, adicionar o parâmetro `-w`
+kubectl get deployment -o wide -w
+# Quando a coluna `Ready` mostrar `3/3` para o deployment hello-world-deployment, pressionar Ctrl+C para interromper o comando
+# Caso ocorra algum erro ao tentar criar um recurso, podemos utilizar o comando `kubectl describe` para verificar eventuais eventos de erro gerados para o recurso:
+kubectl describe pods
+# Podemos realizar o describe de um pod específico (trocar para o nome do pod que desejar):
+kubectl describe pods hello-world-deployment-7c56c6f587-bl2xf
+```
+
+Caso precise alterar uma configuração, editar o arquivo de configuração correspondente e executar o comando `kubectl apply -f nome_do_arquivo.yaml` novamente.
+
+Liste os pods criados:
+```shell	
+kubectl get pods
+```
+```
+NAME                                      READY   STATUS    RESTARTS   AGE
+hello-world-deployment-7c56c6f587-6l5cp   1/1     Running   0          4m22s
+hello-world-deployment-7c56c6f587-brrcc   1/1     Running   0          4m22s
+hello-world-deployment-7c56c6f587-kldj8   1/1     Running   0          4m22s
+```
+
+Escolha um pod para entrarmos em seu container. Exemplo:
+```shell
+kubectl exec -it hello-world-deployment-7c56c6f587-6l5cp -- /bin/sh
+```
+
+### No container
+```shell
+cd /vol
+echo "Arquivo de teste de dentro do container" > no-container.txt
+exit
+```
+
+Acessar a URL [http://hello-world-192-168-56-102.nip.io/files](http://hello-world-192-168-56-102.nip.io/files) e verificar se o arquivo criado é listado na página.
+
+### No Node 1
+Vamos obter os detalhes do volume criado através da configuração PVC.
+```shell
+# Obter os volumes persistentes criados
+kubectl get pv
+```
+```
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                     STORAGECLASS        REASON   AGE
+pvc-1925a2db-77e7-4b27-aae6-961dfd455d25   1Gi        RWX            Delete           Bound    default/hello-world-pvc   microk8s-hostpath            11m
+```
+```shell
+# Obter o detalhe do volume persistente criado
+kubectl describe pv pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
+```
+```
+Name:            pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
+Labels:          <none>
+Annotations:     hostPathProvisionerIdentity: 192-168-56-102.nip.io
+                 pv.kubernetes.io/provisioned-by: microk8s.io/hostpath
+Finalizers:      [kubernetes.io/pv-protection]
+StorageClass:    microk8s-hostpath
+Status:          Bound
+Claim:           default/hello-world-pvc
+Reclaim Policy:  Delete
+Access Modes:    RWX
+VolumeMode:      Filesystem
+Capacity:        1Gi
+Node Affinity:   <none>
+Message:         
+Source:
+    Type:          HostPath (bare host directory volume)
+    Path:          /var/snap/microk8s/common/default-storage/default-hello-world-pvc-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
+    HostPathType:  
+Events:            <none>
+```
+Observer que o StorageClass utilizado por esse volume persistente é do tipo `microk8s-hostpath`, que foi o que instalamos ao habilitarmos o storage no microk8s (`sudo microk8s enable storage`). Essa classe de storage realiza a montagem do volume local do host (`/var/snap/microk8s/common/default-storage/<namespace-nome_da_config_pvc-nome_do_pvc>`) dentro do caminho especificado no container. 
+
+Obter o caminho do volume em `Path:`. Exemplo: `/var/snap/microk8s/common/default-storage/default-hello-world-pvc-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25`
+
+```shell
+# Listar os arquivos do volume a partir do host
+sudo ls -la /var/snap/microk8s/common/default-storage/default-hello-world-pvc-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
+# Adicionar um arquivo no volume a partir do host
+sudo echo "Olá do host" > /var/snap/microk8s/common/default-storage/default-hello-world-pvc-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25/no-host.txt
+```
+
+Acessar a URL [http://hello-world-192-168-56-102.nip.io/files](http://hello-world-192-168-56-102.nip.io/files) e verificar se o arquivo criado é listado na página.
+
+Obtenha a relação de pods criados:
+```shell
+kubectl get pods -o wide
+```
+```
+NAME                                      READY   STATUS    RESTARTS   AGE   IP             NODE                    NOMINATED NODE   READINESS GATES
+hello-world-deployment-7c56c6f587-6l5cp   1/1     Running   0          21m   10.1.232.204   192-168-56-102.nip.io   <none>           <none>
+hello-world-deployment-7c56c6f587-brrcc   1/1     Running   0          21m   10.1.232.205   192-168-56-102.nip.io   <none>           <none>
+hello-world-deployment-7c56c6f587-kldj8   1/1     Running   0          21m   10.1.232.206   192-168-56-102.nip.io   <none>           <none>
+```
+
+Fique realizando o refresh da página [http://hello-world-192-168-56-102.nip.io/](http://hello-world-192-168-56-102.nip.io/) e observe que o IP e Hostname variam a cada refresh. O Kubernetes distribuí proporcionalmente as requisições para os pods que correspondem ao service `hello-world-service` que criamos.
+
+Escolha um pod para deletarmos:
+```shell
+kubectl delete pod hello-world-deployment-7c56c6f587-6l5cp
+```
+
+Fique realizando o refresh da página [http://hello-world-192-168-56-102.nip.io/](http://hello-world-192-168-56-102.nip.io/) e observe que um novo pod foi criado automaticamente, para garantir que o número de réplicas seja 3, conforme configurado no `hello-world-deployment`.
+
+Verificar o pod novo criado automaticamente pelo Kubernetes:
+```shell
+kubectl get pods -o wide
+```
+
+Para destruir todos os recursos criados, executar o seguinte comando:
+```shell
+# Deletar todos os recursos listados nos arquivos .yaml da pasta corrente
+kubectl delete -f .
+```
