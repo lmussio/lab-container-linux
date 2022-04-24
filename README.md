@@ -18,14 +18,14 @@ sudo usermod -aG docker ubuntu
 sudo init 6
 ```
 
-Baixar a imagem do Linux Alpine que utilizaremos para criação do nosso RootFS:
-```shell
-docker pull alpine
-```
-
 Trocar para o usuário root:
 ```shell
 sudo su
+```
+
+Baixar a imagem do Linux Alpine que utilizaremos para criação do nosso RootFS:
+```shell
+docker pull alpine
 ```
 
 Acessar a pasta home do usuário e criar a pasta lab02:
