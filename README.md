@@ -5,3 +5,6 @@ Laboratórios utilizando máquinas virtuais Ubuntu 20.04, visando aplicar os con
 - [Lab02 - Criação de um container Linux](lab02/README.md)
 - [Lab03 - Criação de containers Docker](lab03/README.md)
 - [Lab04 - Criação de pods K8S](lab04/README.md)
+
+## License
+See [LICENSE](LICENSE) for more information.
