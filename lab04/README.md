@@ -1,10 +1,10 @@
-# Laboratório de Microcontainers - Criação de pods K8S
+# Lab04 - Criação de pods K8S
 > [Voltar](../README.md)
 
-Nesse laboratório, iremos criar pods Kubernetes, utilizando o [microk8s](https://microk8s.io/) da Canonical para criação do cluster K8S, através de uma VM Ubuntu Server 20.04, criada no `lab01` utilizando VirtualBox. Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
+Nesse laboratório, iremos criar pods Kubernetes, utilizando o [microk8s](https://microk8s.io/) da Canonical para criação do cluster K8S, através de uma VM Ubuntu Server 20.04, criada no `Lab01` utilizando VirtualBox. Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
 
 ## 1. Preparação do ambiente para laboratório
-Para esse laboratório, precisaremos realizar a instalação do Microk8s no servidor (VM Ubuntu 20.04 criada no `lab01`), que chamaremos de `Node 1`.
+Para esse laboratório, precisaremos realizar a instalação do Microk8s no servidor (VM Ubuntu 20.04 criada no `Lab01`), que chamaremos de `Node 1`.
 ```shell
 # Obter o IP da rede interna da VM
 MEU_IP=$(ip route | grep 192.168.56 | awk '{print $9}' | sed 's/\./-/g')

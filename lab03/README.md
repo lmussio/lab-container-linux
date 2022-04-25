@@ -1,7 +1,7 @@
-# Laboratório de Microcontainers - Criação de containers Docker
+# Lab03 - Criação de containers Docker
 > [Voltar](../README.md)
 
-Nesse laboratório, iremos criar containers Docker, utilizando o programa de linha de comando `docker`, através de uma VM Ubuntu Server 20.04, criada no `lab01` utilizando VirtualBox.
+Nesse laboratório, iremos criar containers Docker, utilizando o programa de linha de comando `docker`, através de uma VM Ubuntu Server 20.04, criada no `Lab01` utilizando VirtualBox.
 
 ## 1. Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do Docker no Ubuntu 20.04, caso não esteja instalado:
