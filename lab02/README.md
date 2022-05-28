@@ -45,7 +45,7 @@ Criaremos a estrutura de diretórios do OverlayFS dentro da pasta `fs`, populand
 mkdir -p fs/{lower,upper,work,merged}
 # Exportar a imagem alpine para o diretório fs/lower
 docker export $(docker create alpine) | tar -C fs/lower -xf -
-# Montar o OverlayFS
+# Montar o OverlayFS (Irá aparecer algo como "mount: none mounted on /root/lab02/fs/merged", significando que a montagem foi realizada com sucesso. O `none` significa que não existe uma partição física correspondente para a montagem, já que estamos realizando a montagem a partir dos diretórios do OverlayFS.)
 mount -vt overlay -o lowerdir=./fs/lower,upperdir=./fs/upper,workdir=./fs/work none ./fs/merged
 # Verificar o sistema operacional atual (Ubuntu)
 cat /etc/os-release
