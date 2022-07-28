@@ -1,7 +1,7 @@
 # Lab02 - Criação de um container Linux
 > [Voltar](../README.md)
 
-Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Server 20.04. Podemos utilizar o VirtualBox para criação da VM, ou de maneira alternativa, podemos utilizar um ambiente [Ubuntu 20.04 no Katacoda](https://www.katacoda.com/courses/ubuntu/playground2004).
+Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Server 20.04. Podemos utilizar o VirtualBox para criação da VM, ou de maneira alternativa, podemos utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
 
 ## Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do Docker no Ubuntu 20.04, caso não esteja instalado:
