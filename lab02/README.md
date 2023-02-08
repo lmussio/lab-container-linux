@@ -254,6 +254,9 @@ ping www.google.com
 # Observe que conseguimos acessar o IP 1.1.1.1 e o domínio www.google.com
 exit
 ```
+---
+### `Atenção`
+
 Caso o ping para 1.1.1.1 e www.google.com não funcione, pode ser que na rede onde está sendo executado o lab, exista um bloqueio de firewall para o protocolo ICMP utilizado durante o ping. De maneira alternativa, substitua os pings realizados nos passos anteriores, utilizando o seguinte comando `ping` para testar a conectividade:
 ```shell
 ping 192.168.56.1
@@ -270,6 +273,7 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ping 192.168.56.1
 exit
 ```
+---
 
 ### No host
 #### Para persistir a configuração net.ipv4.ip_forward
