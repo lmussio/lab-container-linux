@@ -80,8 +80,10 @@ chroot fs/merged /bin/sh
 # Entrar na pasta /volume
 cd /volume
 # Tentar adicionar no final do arquivo de teste criado anteriormente, a frase `Um olá de dentro do container!`
+# Após executar o comando abaixo, observe que não foi possível alterar o arquivo de teste, pois ao realizarmos a montagem
+# do volume, utilizamos o parâmetro `-o ro`, que indica que o volume é somente leitura. Vamos sair do container 
+# e montar novamente o volume, com permissão de escrita.
 echo "Um olá de dentro do container!" >> lab02.txt
-# Observe que não foi possível alterar o arquivo de teste, pois ao realizarmos a montagem do volume, utilizamos o parâmetro `-o ro`, que indica que o volume é somente leitura. Vamos sair do container e montar novamente o volume, com permissão de escrita.
 exit
 ```
 ### No host
@@ -269,7 +271,7 @@ mkdir -p /sys/fs/cgroup/pids/cnt/lab02
 # Limitar a quantidade de processos que podem ser criados dentro do container em 3
 echo 3 > /sys/fs/cgroup/pids/cnt/lab02/pids.max
 ```
-### Terminal 2
+### Terminal 1
 Em em segundo terminal, realizar os seguintes comandos:
 ```shell
 # Trocar para o usuário root
@@ -279,7 +281,7 @@ cd && cd lab02
 # Entrar no container, através do shell (/bin/sh) com o parâmetro `-v`
 ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh -v
 ```
-### Terminal 3
+### Terminal 2
 Em em terceiro terminal, realizar os seguintes comandos:
 ```shell
 # Trocar para o usuário root
