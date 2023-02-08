@@ -258,9 +258,21 @@ Caso o ping para 1.1.1.1 e www.google.com não funcione, pode ser que na rede on
 ```shell
 ping 192.168.56.1
 ```
-Repita os passos a partir do comando `# Desabilitar o roteamento via Kernel Linux`.
+Repita os passos a partir do comando `# Desabilitar o roteamento via Kernel Linux`:
+```
+sysctl -w net.ipv4.ip_forward=0
+ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
+ip link
+ping 192.168.56.1
+exit
+sysctl -w net.ipv4.ip_forward=1
+ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
+ping 192.168.56.1
+exit
+```
 
-### Para persistir a configuração net.ipv4.ip_forward
+### No host
+#### Para persistir a configuração net.ipv4.ip_forward
 ```shell
 # Salvar a configuração net.ipv4.ip_forward no arquivo /etc/sysctl.conf
 sudo nano /etc/sysctl.conf
