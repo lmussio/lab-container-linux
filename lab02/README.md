@@ -45,7 +45,9 @@ Criaremos a estrutura de diretórios do OverlayFS dentro da pasta `fs`, populand
 mkdir -p fs/{lower,upper,work,merged}
 # Exportar a imagem alpine para o diretório fs/lower
 docker export $(docker create alpine) | tar -C fs/lower -xf -
-# Montar o OverlayFS (Irá aparecer algo como "mount: none mounted on /root/lab02/fs/merged", significando que a montagem foi realizada com sucesso. O `none` significa que não existe uma partição física correspondente para a montagem, já que estamos realizando a montagem a partir dos diretórios do OverlayFS.)
+# Montar o OverlayFS (Irá aparecer algo como "mount: none mounted on /root/lab02/fs/merged", significando que a montagem 
+# foi realizada com sucesso. O `none` significa que não existe uma partição física correspondente para a montagem, já que
+# estamos realizando a montagem a partir dos diretórios do OverlayFS.)
 mount -vt overlay -o lowerdir=./fs/lower,upperdir=./fs/upper,workdir=./fs/work none ./fs/merged
 # Verificar o sistema operacional atual (Ubuntu)
 cat /etc/os-release
@@ -130,13 +132,16 @@ mount -vt proc proc /proc
 echo $$
 # Listar os processos que enxergamos no container
 ps aux
-# Observe que não existe isolamento de processos, pois o container não está em um ambiente isolado. Para isso, vamos sair do container e criar um isolamento para nosso container, através de namespaces.
+# Observe que não existe isolamento de processos, pois o container não está em um ambiente isolado. Para isso, vamos sair 
+# do container e criar um isolamento para nosso container, através de namespaces.
 exit
 ```
 
 ### No host
 ```shell
-# Criar um namespace para o container, utilizando o comando unshare, isolando pontos de montagem (--mount) e processos (--pid), realizando a montagem do sistema de arquivos proc criado dentro do container (fs/merged/proc). Com o parâmetro --fork criamos uma novo processo, que será o responsável por executar o container utilizando o comando chroot.
+# Criar um namespace para o container, utilizando o comando unshare, isolando pontos de montagem (--mount) e processos (--pid),
+# realizando a montagem do sistema de arquivos proc criado dentro do container (fs/merged/proc). Com o parâmetro --fork criamos
+# uma novo processo, que será o responsável por executar o container utilizando o comando chroot.
 unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
 ```
 ### No container
@@ -194,14 +199,17 @@ ip -n cnt link set lo up
 ip -n cnt link set veth-cnt up
 # Adicionar o `meu-switch` como rota padrão para o container, permitindo o encaminhamento de pacotes de rede do container para outras redes
 ip -n cnt route add default via 10.123.231.1 dev veth-cnt
-# Configurar o SNAT (Source NAT) para pacotes provenientes da rede 10.123.231.0/24, cujo o destino sejam outras interfaces de rede distintas à bridge `meu-switch`
+# Configurar o SNAT (Source NAT) para pacotes provenientes da rede 10.123.231.0/24, cujo o destino sejam outras interfaces 
+# de rede distintas à bridge `meu-switch`
 # `iptables -t nat -I POSTROUTING 1`: Cria uma regra de SNAT momento antes de realizar o roteamento. Adiciona essa regra na posição 1 da tabela nat.
 # `-s 10.123.231.0/24`: A regra é aplicada apenas para pacotes cujo a origem seja um IP da subnet 10.123.231.0/24.
 # `! -o meu-switch`: A regra é aplicada apenas para pacotes cujo a interface de saída não seja `meu-switch`.
 iptables -t nat -I POSTROUTING 1 -s 10.123.231.0/24 ! -o meu-switch -j MASQUERADE
-# Configurar a filtragem de pacotes, permitindo que pacotes que chegam da interface bridge `meu-switch`, sejam encaminhados para outras interfaces diferentes da `meu-switch`
+# Configurar a filtragem de pacotes, permitindo que pacotes que chegam da interface bridge `meu-switch`, 
+# sejam encaminhados para outras interfaces diferentes da `meu-switch`
 iptables -I FORWARD -i meu-switch ! -o meu-switch -j ACCEPT
-# Configurar a filtragem de pacotes, permitindo que pacotes que chegam da interface bridge `meu-switch`, sejam encaminhados para a própria interface `meu-switch`
+# Configurar a filtragem de pacotes, permitindo que pacotes que chegam da interface bridge `meu-switch`, 
+# sejam encaminhados para a própria interface `meu-switch`
 iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT
 # Configurar a filtragem de pacotes, permitindo que outras máquinas troquem pacotes de redes em conexões estabelecidas com a rede 10.123.231.0/24
 iptables -I FORWARD -o meu-switch -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
