@@ -259,7 +259,7 @@ Caso o ping para 1.1.1.1 e www.google.com não funcione, pode ser que na rede on
 ping 192.168.56.1
 ```
 Repita os passos a partir do comando `# Desabilitar o roteamento via Kernel Linux`:
-```
+```shell
 sysctl -w net.ipv4.ip_forward=0
 ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
 ip link
