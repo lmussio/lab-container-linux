@@ -317,7 +317,7 @@ echo 3 > /sys/fs/cgroup/pids/cnt/lab02/pids.max
 
 ![image](https://github.com/lmussio/lab-container-linux/assets/7672988/96f21b44-8156-47b5-bf44-ee05f90a96ad)
 
-Por exemplo, utilizaremos a Tab 2 criada, para o Terminal 1:
+Por exemplo, utilizaremos a `Tab 2` criada, para o `Terminal 1`:
 
 ![image](https://github.com/lmussio/lab-container-linux/assets/7672988/a06fa636-d19c-4b0c-9150-256667ebbc65)
 
