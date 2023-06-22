@@ -10,7 +10,7 @@ Para esse laboratório, precisaremos realizar a instalação do Docker no Ubuntu
 sudo snap install docker
 ```
 
-`OPCIONAL` Para utilizarmos o docker sem usuário root, precisamos adicionar o grupo docker ao usuário ubuntu:
+`OPCIONAL` Para utilizarmos o docker sem usuário root, precisamos adicionar o grupo docker ao usuário atual utilizado:
 ```shell
 # Criaremos um grupo docker caso não exista
 sudo groupadd docker
