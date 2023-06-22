@@ -408,13 +408,43 @@ $(cd /sys/fs/cgroup/pids && rmdir -p cnt/lab02)
 ## Kit montagem
 Seguem comandos utilizados para a montagem do laboratório futuramente:
 ```shell
+# Setup Docker
+sudo snap install docker
+sudo groupadd docker
+sudo usermod -aG docker $USER
+su - $USER
 # Acesso ao diretório do laboratório
 sudo su
-cd && cd lab02
+cd
+mkdir lab02
+cd lab02
+mkdir -p fs/{lower,upper,work,merged}
+docker export $(docker create alpine) | tar -C fs/lower -xf -
 # Montagens para o container
 mount -vt overlay -o lowerdir=./fs/lower,upperdir=./fs/upper,workdir=./fs/work none ./fs/merged
 mount -vt proc proc ./fs/merged/proc
+mkdir volume 
+mkdir ./fs/merged/volume
 mount -v --bind -o rw ./volume ./fs/merged/volume
+ip netns add cnt
+ip link add meu-switch type bridge
+ip addr add 10.123.231.1/24 brd + dev meu-switch
+ip link set meu-switch up
+ip link add veth-cnt type veth peer name meu-sw-veth-1
+ip link set veth-cnt netns cnt
+ip link set meu-sw-veth-1 master meu-switch
+ip link set meu-sw-veth-1 up
+ip -n cnt addr add 10.123.231.2/24 dev veth-cnt
+ip -n cnt link set lo up
+ip -n cnt link set veth-cnt up
+ip -n cnt route add default via 10.123.231.1 dev veth-cnt
+iptables -t nat -I POSTROUTING 1 -s 10.123.231.0/24 ! -o meu-switch -j MASQUERADE
+iptables -I FORWARD -i meu-switch ! -o meu-switch -j ACCEPT
+iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT
+iptables -I FORWARD -o meu-switch -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+mkdir -p netns/cnt
+echo nameserver 8.8.8.8 > netns/cnt/resolv.conf
+sysctl -w net.ipv4.ip_forward=1
 mount --bind ./netns/cnt/resolv.conf ./fs/merged/etc/resolv.conf
 # Acesso ao container
 ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
