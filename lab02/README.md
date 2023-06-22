@@ -202,9 +202,10 @@ ip -n cnt link set lo up
 ip -n cnt link set veth-cnt up
 # Adicionar o `meu-switch` como rota padrão para o container, permitindo o encaminhamento de pacotes de rede do container para outras redes
 ip -n cnt route add default via 10.123.231.1 dev veth-cnt
-# Configurar o SNAT (Source NAT) para pacotes provenientes da rede 10.123.231.0/24, cujo o destino sejam outras interfaces 
-# de rede distintas à bridge `meu-switch`
-# `iptables -t nat -I POSTROUTING 1`: Cria uma regra de SNAT momento antes de realizar o roteamento. Adiciona essa regra na posição 1 da tabela nat.
+# Configurar o SNAT (Source NAT) para pacotes provenientes da rede 10.123.231.0/24, 
+# cujo o destino sejam outras interfaces de rede distintas à bridge `meu-switch`
+# `iptables -t nat -I POSTROUTING 1`: Cria uma regra de SNAT momento antes de realizar o roteamento. 
+# Adiciona essa regra na posição 1 da tabela nat.
 # `-s 10.123.231.0/24`: A regra é aplicada apenas para pacotes cujo a origem seja um IP da subnet 10.123.231.0/24.
 # `! -o meu-switch`: A regra é aplicada apenas para pacotes cujo a interface de saída não seja `meu-switch`.
 iptables -t nat -I POSTROUTING 1 -s 10.123.231.0/24 ! -o meu-switch -j MASQUERADE
@@ -214,7 +215,8 @@ iptables -I FORWARD -i meu-switch ! -o meu-switch -j ACCEPT
 # Configurar a filtragem de pacotes, permitindo que pacotes que chegam da interface bridge `meu-switch`, 
 # sejam encaminhados para a própria interface `meu-switch`
 iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT
-# Configurar a filtragem de pacotes, permitindo que outras máquinas troquem pacotes de redes em conexões estabelecidas com a rede 10.123.231.0/24
+# Configurar a filtragem de pacotes, permitindo que outras máquinas troquem pacotes de redes em 
+# conexões estabelecidas com a rede 10.123.231.0/24
 iptables -I FORWARD -o meu-switch -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 ```
 
@@ -238,7 +240,9 @@ ip link
 # Observe que não conseguimos mais visualizar as interfaces de rede do hosts, apenas as interfaces de rede configuradas no namespace
 # Verificar o acesso do container ao IP 1.1.1.1, através do comando `ping`
 ping 1.1.1.1
-# Observe que não conseguimos acessar o IP 1.1.1.1, ou seja, não recebemos resposta dessa máquina 1.1.1.1. Para interromper o ping, pressionar `Ctrl+C`, finalizando o comando ping em execução. Isso ocorre por conta de termos desabilitado o roteamento de pacotes de rede através do Kernel Linux
+# Observe que não conseguimos acessar o IP 1.1.1.1, ou seja, não recebemos resposta dessa máquina 1.1.1.1. 
+# Para interromper o ping, pressionar `Ctrl+C`, finalizando o comando ping em execução. 
+# Isso ocorre por conta de termos desabilitado o roteamento de pacotes de rede através do Kernel Linux
 exit
 ```
 ### No host
@@ -257,26 +261,6 @@ ping www.google.com
 # Observe que conseguimos acessar o IP 1.1.1.1 e o domínio www.google.com
 exit
 ```
----
-### `Atenção`
-
-Caso o ping para 1.1.1.1 e www.google.com não funcione, pode ser que na rede onde está sendo executado o lab, exista um bloqueio de firewall para o protocolo ICMP utilizado durante o ping. De maneira alternativa, substitua os pings realizados nos passos anteriores, utilizando o seguinte comando `ping` para testar a conectividade:
-```shell
-ping 192.168.56.1
-```
-Repita os passos a partir do comando `# Desabilitar o roteamento via Kernel Linux`:
-```shell
-sysctl -w net.ipv4.ip_forward=0
-ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
-ip link
-ping 192.168.56.1
-exit
-sysctl -w net.ipv4.ip_forward=1
-ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
-ping 192.168.56.1
-exit
-```
----
 
 ### No host
 #### Para persistir a configuração net.ipv4.ip_forward
@@ -293,7 +277,9 @@ sudo nano /etc/sysctl.conf
 Agora limitaremos a criação de processos no container, através da configuração do cgroup.
 ### No host
 ```shell
-# Criar um diretório cnt/lab02 no cgroup pids. O diretório /sys/fs/cgroup é um diretório de arquivos que contém os grupos de controle para os processos Linux. Quando criamos uma nova pasta dentro de /sys/fs/cgroup/<cgroup>, o Kernel Linux cria um grupo de controle dedicado, onde podemos especificar os processos que serão geridos por ele.
+# Criar um diretório cnt/lab02 no cgroup pids. O diretório /sys/fs/cgroup é um diretório de arquivos que contém 
+# os grupos de controle para os processos Linux. Quando criamos uma nova pasta dentro de /sys/fs/cgroup/<cgroup>, 
+# o Kernel Linux cria um grupo de controle dedicado, onde podemos especificar os processos que serão geridos por ele.
 mkdir -p /sys/fs/cgroup/pids/cnt/lab02
 # Limitar a quantidade de processos que podem ser criados dentro do container em 3
 echo 3 > /sys/fs/cgroup/pids/cnt/lab02/pids.max
@@ -321,7 +307,8 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 
 ### No host
 ```shell
-# Criar variável de ambiente `CNT_PID` contendo como o valor a lista de processos `sh` com parâmetro `-v`. Nesse caso, serão os dois shells que estão rodando dentro do container.
+# Criar variável de ambiente `CNT_PID` contendo como o valor a lista de processos `sh` com parâmetro `-v`. 
+# Nesse caso, serão os dois shells que estão rodando dentro do container.
 CNT_PID=$(lsns -t pid | grep "sh -v" | awk '{print $4}')
 # Configurar o cgroup criado anteriormente, para controlar os processos em execução dentro do container
 echo "$CNT_PID" > /sys/fs/cgroup/pids/cnt/lab02/tasks
@@ -336,7 +323,9 @@ sleep 30
 ```shell
 # Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
 sleep 30
-# Observe que ao tentar criar um novo processo, o Kernel Linux não permite que o processo seja criado, dado que extrapolou o limite imposto pelo cgroup configurado. No caso temos 2 processos `sh -v` e 1 processo `sleep 30`, e estamos tentando executar o quarto processo `sleep 30`.
+# Observe que ao tentar criar um novo processo, o Kernel Linux não permite que o processo seja criado, 
+# dado que extrapolou o limite imposto pelo cgroup configurado. No caso temos 2 processos `sh -v` e 1 processo `sleep 30`, 
+# e estamos tentando executar o quarto processo `sleep 30`.
 ```
 
 ### No host
