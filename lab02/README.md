@@ -323,7 +323,7 @@ Por exemplo, utilizaremos a `Tab 2` criada, para o `Terminal 1`:
 
 ---
 
-### Terminal 1
+### Terminal 1 (`Tab 2`)
 Em em segundo terminal, realizar os seguintes comandos:
 ```shell
 # Trocar para o usuário root
@@ -333,7 +333,7 @@ cd && cd lab02
 # Entrar no container, através do shell (/bin/sh) com o parâmetro `-v`
 ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh -v
 ```
-### Terminal 2
+### Terminal 2 (`Tab 3`)
 Em em terceiro terminal, realizar os seguintes comandos:
 ```shell
 # Trocar para o usuário root
@@ -344,7 +344,7 @@ cd && cd lab02
 ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh -v
 ```
 
-### No host
+### No host (`Tab 1`)
 ```shell
 # Criar variável de ambiente `CNT_PID` contendo como o valor a lista de processos `sh` com parâmetro `-v`. 
 # Nesse caso, serão os dois shells que estão rodando dentro do container.
@@ -353,12 +353,12 @@ CNT_PID=$(lsns -t pid | grep "sh -v" | awk '{print $4}')
 echo "$CNT_PID" > /sys/fs/cgroup/pids/cnt/lab02/tasks
 ```
 
-### Terminal 1
+### Terminal 1 (`Tab 2`)
 ```shell
 # Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
 sleep 30
 ```
-### Terminal 2
+### Terminal 2 (`Tab 3`)
 ```shell
 # Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
 sleep 30
@@ -367,17 +367,17 @@ sleep 30
 # e estamos tentando executar o quarto processo `sleep 30`.
 ```
 
-### No host
+### No host (`Tab 1`)
 ```shell
 # Remover o limite imposto anteriormente
 echo max > /sys/fs/cgroup/pids/cnt/lab02/pids.max
 ```
-### Terminal 1
+### Terminal 1 (`Tab 2`)
 ```shell
 # Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
 sleep 30
 ```
-### Terminal 2
+### Terminal 2 (`Tab 3`)
 ```shell
 # Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
 sleep 30
