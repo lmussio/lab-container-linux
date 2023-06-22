@@ -288,6 +288,7 @@ exit
 # Salvar a configuração net.ipv4.ip_forward no arquivo /etc/sysctl.conf
 sudo nano /etc/sysctl.conf
 ```
+- Navegue no arquivo utilizando as setas do teclado
 - Adicione no final do arquivo a seguinte linha: `net.ipv4.ip_forward=1`
 - Pressione Ctrl+X
 - Pressione Y
