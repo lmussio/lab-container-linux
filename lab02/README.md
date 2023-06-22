@@ -307,6 +307,10 @@ mkdir -p /sys/fs/cgroup/pids/cnt/lab02
 # Limitar a quantidade de processos que podem ser criados dentro do container em 3
 echo 3 > /sys/fs/cgroup/pids/cnt/lab02/pids.max
 ```
+
+A seguir criaremos alguns terminais adicionais além do terminal atual que estamos utilizando para comando no Host. Para isso, pressionar o botão `+`, conforme imagem abaixo:
+![image](https://github.com/lmussio/lab-container-linux/assets/7672988/96f21b44-8156-47b5-bf44-ee05f90a96ad)
+
 ### Terminal 1
 Em em segundo terminal, realizar os seguintes comandos:
 ```shell
