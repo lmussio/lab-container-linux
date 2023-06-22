@@ -420,12 +420,15 @@ mkdir lab02
 cd lab02
 mkdir -p fs/{lower,upper,work,merged}
 docker export $(docker create alpine) | tar -C fs/lower -xf -
-# Montagens para o container
+# OverlayFS
 mount -vt overlay -o lowerdir=./fs/lower,upperdir=./fs/upper,workdir=./fs/work none ./fs/merged
-mount -vt proc proc ./fs/merged/proc
+# Volume
 mkdir volume 
 mkdir ./fs/merged/volume
 mount -v --bind -o rw ./volume ./fs/merged/volume
+# Namespace
+mount -vt proc proc ./fs/merged/proc
+# Network
 ip netns add cnt
 ip link add meu-switch type bridge
 ip addr add 10.123.231.1/24 brd + dev meu-switch
