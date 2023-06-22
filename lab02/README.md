@@ -15,9 +15,12 @@ sudo snap install docker
 # Criaremos um grupo docker caso não exista
 sudo groupadd docker
 # Adicionaremos o usuário ubuntu ao grupo docker
-sudo usermod -aG docker ubuntu
-# Reiniciar o sistema aplicando o seguinte comando
-sudo init 6
+sudo usermod -aG docker $USER
+# Abrir nova sessão de usuário para carregar o grupo
+su - $USER
+# Verificar se nosso usuário está contido no grupo docker
+id
+# Deve aparecer algo do tipo: uid=0(root) gid=0(root) groups=0(root),120(docker)
 ```
 
 Trocar para o usuário root:
