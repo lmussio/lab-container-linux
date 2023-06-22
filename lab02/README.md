@@ -3,6 +3,12 @@
 
 Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
 
+---
+
+:grey_exclamation: Para copiar um texto no terminal do Killercoda, basca selecionar o texto desejado utilizando o mouse, que automaticamente será copiado. Para colar um texto no terminal do Killercoda, clicar com botão direito do mouse e selecionar opção `Colar`, ou então pressionar as teclas `Ctrl + Shift + V`.
+
+---
+
 ## Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do Docker no Ubuntu 20.04, caso não esteja instalado:
 ```shell
