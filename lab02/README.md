@@ -294,6 +294,8 @@ sudo nano /etc/sysctl.conf
 - Pressione Y
 - Pressione Enter
 
+:grey_exclamation: Para usuários mais avançados, podem utilizar o editor de texto `vim`.
+
 ## Cgroup
 Agora limitaremos a criação de processos no container, através da configuração do cgroup.
 ### No host
