@@ -48,8 +48,9 @@ Criaremos a estrutura de diretórios do OverlayFS dentro da pasta `fs`, populand
 mkdir -p fs/{lower,upper,work,merged}
 # Exportar a imagem alpine para o diretório fs/lower
 docker export $(docker create alpine) | tar -C fs/lower -xf -
-# Montar o OverlayFS (Irá aparecer algo como "mount: none mounted on /root/lab02/fs/merged", significando que a montagem 
-# foi realizada com sucesso. O `none` significa que não existe uma partição física correspondente para a montagem, já que
+# Montar o OverlayFS (Irá aparecer algo como "mount: none mounted on /root/lab02/fs/merged", 
+# significando que a montagem foi realizada com sucesso. 
+# O `none` significa que não existe uma partição física correspondente para a montagem, já que
 # estamos realizando a montagem a partir dos diretórios do OverlayFS.)
 mount -vt overlay -o lowerdir=./fs/lower,upperdir=./fs/upper,workdir=./fs/work none ./fs/merged
 # Verificar o sistema operacional atual (Ubuntu)
@@ -73,9 +74,11 @@ Agora criaremos um volume para montarmos no nosso container, permitindo persisti
 mkdir volume 
 # Criar um arquivo de teste, com o conteúdo `Meu arquivo de teste`
 echo "Meu arquivo de teste" > volume/lab02.txt
-# Criar uma pasta volume dentro do diretório fs/merged para realizarmos a montagem da pasta volume do host dentro do container
+# Criar uma pasta volume dentro do diretório fs/merged para realizarmos 
+# a montagem da pasta volume do host dentro do container
 mkdir ./fs/merged/volume
-# Montar o volume no container. Aparecerá algo como: "mount: /root/lab02/volume bound on /root/lab02/fs/merged/volume."
+# Montar o volume no container. 
+# Aparecerá algo como: "mount: /root/lab02/volume bound on /root/lab02/fs/merged/volume."
 mount -v --bind -o ro ./volume ./fs/merged/volume
 # Entrar no container
 chroot fs/merged /bin/sh
@@ -84,10 +87,12 @@ chroot fs/merged /bin/sh
 ```shell
 # Entrar na pasta /volume
 cd /volume
-# Tentar adicionar no final do arquivo de teste criado anteriormente, a frase `Um olá de dentro do container!`
-# Após executar o comando abaixo, observe que não foi possível alterar o arquivo de teste, pois ao realizarmos a montagem
-# do volume, utilizamos o parâmetro `-o ro`, que indica que o volume é somente leitura. Vamos sair do container 
-# e montar novamente o volume, com permissão de escrita.
+# Tentar adicionar no final do arquivo de teste criado anteriormente, 
+# a frase `Um olá de dentro do container!`
+# Após executar o comando abaixo, observe que não foi possível alterar o 
+# arquivo de teste, pois ao realizarmos a montagem do volume, 
+# utilizamos o parâmetro `-o ro`, que indica que o volume é somente leitura. 
+# Vamos sair do container e montar novamente o volume, com permissão de escrita.
 echo "Um olá de dentro do container!" >> lab02.txt
 exit
 ```
@@ -104,7 +109,8 @@ chroot fs/merged /bin/sh
 ```shell
 # Entrar na pasta /volume
 cd /volume
-# Adicionar a frase `Um olá de dentro do container!` no final do arquivo de teste
+# Adicionar a frase `Um olá de dentro do container!` no final 
+# do arquivo de teste
 echo "Um olá de dentro do container!" >> lab02.txt
 # Sair do container
 exit
@@ -113,7 +119,8 @@ exit
 ```shell
 # Obter o conteúdo do arquivo de teste
 cat ./volume/lab02.txt
-# Observe que o conteúdo do arquivo contém as alterações que realizamos dentro do container
+# Observe que o conteúdo do arquivo contém as alterações que 
+# realizamos dentro do container
 ```
 
 ## Namespace
@@ -129,31 +136,39 @@ chroot fs/merged /bin/sh
 ```
 ### No container
 ```shell
-# Montar o diretório /proc para que possamos listar os processos de dentro do container
+# Montar o diretório /proc para que possamos listar os processos 
+# de dentro do container
 mount -vt proc proc /proc
-# Verificar qual o ID do processo atual (PID) no shell que estamos dentro do container
+# Verificar qual o ID do processo atual (PID) no shell que estamos 
+# dentro do container
 echo $$
 # Listar os processos que enxergamos no container
 ps aux
-# Observe que não existe isolamento de processos, pois o container não está em um ambiente isolado. Para isso, vamos sair 
-# do container e criar um isolamento para nosso container, através de namespaces.
+# Observe que não existe isolamento de processos, pois o container não está 
+# em um ambiente isolado. Para isso, vamos sair do container e criar um 
+# isolamento para nosso container, através de namespaces.
 exit
 ```
 
 ### No host
 ```shell
-# Criar um namespace para o container, utilizando o comando unshare, isolando pontos de montagem (--mount) e processos (--pid),
-# realizando a montagem do sistema de arquivos proc criado dentro do container (fs/merged/proc). Com o parâmetro --fork criamos
-# uma novo processo, que será o responsável por executar o container utilizando o comando chroot.
+# Criar um namespace para o container, utilizando o comando unshare, 
+# isolando pontos de montagem (--mount) e processos (--pid),
+# realizando a montagem do sistema de arquivos proc criado dentro do 
+# container (fs/merged/proc). Com o parâmetro --fork criamos
+# uma novo processo, que será o responsável por executar o container 
+# utilizando o comando chroot.
 unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
 ```
 ### No container
 ```shell
-# Verificar qual o ID do processo atual (PID) no shell que estamos dentro do container
+# Verificar qual o ID do processo atual (PID) no shell que estamos dentro 
+# do container
 echo $$
 # Listar os processos que enxergamos no container
 ps aux
-# Observe que o isolamento funcionou, não sendo mais possível enxergar os processos do host
+# Observe que o isolamento funcionou, não sendo mais possível enxergar os 
+# processos do host
 exit
 ```
 
@@ -167,7 +182,8 @@ unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/s
 ```shell
 # Verificar as interfaces de rede disponíveis ao container
 ip link
-# Observe que conseguimos acessar as interfaces de rede disponíveis no host, dado que não isolamos a camada de network
+# Observe que conseguimos acessar as interfaces de rede disponíveis no host, 
+# dado que não isolamos a camada de network
 exit
 ```
 
@@ -186,9 +202,11 @@ ip link set meu-switch up
 ```
 #### Criação das interfaces de rede virtuais
 ```shell
-# Criar a interface de rede virtual `veth-cnt` do container, conectado à interface de rede virtual `meu-sw-veth-1` do switch virtual
+# Criar a interface de rede virtual `veth-cnt` do container, conectado à 
+# interface de rede virtual `meu-sw-veth-1` do switch virtual
 ip link add veth-cnt type veth peer name meu-sw-veth-1
-# Adicionar a interface de rede virtual `veth-cnt` ao namespace de rede `cnt`, para que nosso container isolado possa acessar essa interface
+# Adicionar a interface de rede virtual `veth-cnt` ao namespace de rede `cnt`, 
+# para que nosso container isolado possa acessar essa interface
 ip link set veth-cnt netns cnt
 # Adicionar a interface de rede virtual `meu-sw-veth-1` ao switch virtual
 ip link set meu-sw-veth-1 master meu-switch
@@ -200,7 +218,8 @@ ip -n cnt addr add 10.123.231.2/24 dev veth-cnt
 ip -n cnt link set lo up
 # Ligar a interface `veth-cnt` do container
 ip -n cnt link set veth-cnt up
-# Adicionar o `meu-switch` como rota padrão para o container, permitindo o encaminhamento de pacotes de rede do container para outras redes
+# Adicionar o `meu-switch` como rota padrão para o container, 
+# permitindo o encaminhamento de pacotes de rede do container para outras redes
 ip -n cnt route add default via 10.123.231.1 dev veth-cnt
 # Configurar o SNAT (Source NAT) para pacotes provenientes da rede 10.123.231.0/24, 
 # cujo o destino sejam outras interfaces de rede distintas à bridge `meu-switch`
@@ -237,7 +256,8 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ```shell
 # Verificar as interfaces de rede disponíveis ao container
 ip link
-# Observe que não conseguimos mais visualizar as interfaces de rede do hosts, apenas as interfaces de rede configuradas no namespace
+# Observe que não conseguimos mais visualizar as interfaces de rede do hosts, 
+# apenas as interfaces de rede configuradas no namespace
 # Verificar o acesso do container ao IP 1.1.1.1, através do comando `ping`
 ping 1.1.1.1
 # Observe que não conseguimos acessar o IP 1.1.1.1, ou seja, não recebemos resposta dessa máquina 1.1.1.1. 
@@ -348,7 +368,8 @@ sleep 30
 ## Limpeza
 Para removermos as configurações realizadas nesse laboratório, utilizar os seguintes comandos:
 ```shell
-# Desmontar recursivamente o diretório fs/merged. Todo e qualquer diretório montado dentro de fs/merged, será desmontado automaticamente
+# Desmontar recursivamente o diretório fs/merged. 
+# Todo e qualquer diretório montado dentro de fs/merged, será desmontado automaticamente
 umount -R ./fs/merged
 # Remover configurações iptables
 iptables -t nat -D POSTROUTING -s 10.123.231.0/24 ! -o meu-switch -j MASQUERADE
