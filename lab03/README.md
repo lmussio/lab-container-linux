@@ -218,6 +218,8 @@ docker image prune -a
 Criaremos uma imagem de container de um servidor de arquivo, utilizando Dockerfile. Para isso, no host (`Tab 1`), utilizaremos o comando `nano Dockerfile`, para editar o arquivo `Dockerfile` conforme indicado no decorrer do laboratório.
 
 ```shell
+# Entrar no diretório do lab03
+cd /home/ubuntu/lab03
 # Baixar a image alpine
 docker pull alpine
 # Editar o arquivo Dockerfile
@@ -246,6 +248,7 @@ Executar os comandos a seguir:
 # `-t file-server` indica que a imagem será salva com o nome `file-server` 
 # `.` indica para construir a imagem a partir da pasta onde estamos (utilizar o comando `pwd` para verificar em qual pasta você está)
 docker build -t file-server .
+
 # Criar um container com a imagem `file-server` que acabamos de construir.
 # `-rm` indica que o container será destruído após o final da sua execução
 docker run -it --rm -p 8000:8000 file-server
@@ -274,6 +277,7 @@ Executar os comandos a seguir:
 ```shell
 # Contruir a nova imagem do container
 docker build -t file-server .
+
 # Criar um novo container com a imagem atualizada
 docker run -it --rm -p 8000:8000 file-server
 ```
@@ -297,12 +301,14 @@ RUN echo "Arquivo de teste" > teste.txt
 
 CMD ["python3", "-m", "http.server"]
 ```
+
 Com a instrução `RUN echo "Arquivo de teste" > teste.txt`, executamos o comando `echo "Arquivo de teste" > teste.txt`, que cria o arquivo `teste.txt` com o conteúdo `Arquivo de teste` dentro da pasta onde estamos (`/files`).
 
 Executar os comandos a seguir:
 ```shell
 # Contruir a nova imagem do container
 docker build -t file-server .
+
 # Criar um novo container com a imagem atualizada
 docker run -it --rm -p 8000:8000 file-server
 ```
@@ -314,10 +320,13 @@ Executar os comandos a seguir:
 # Pressione Ctrl+C para interromper a execução do container
 # Criar pasta host
 mkdir host
+
 # Criar o arquivo host/teste-host.txt
 echo "Arquivo de teste do host" > host/teste-host.txt
+
 # Criar um novo container com a imagem atualizada
-# `-v "$PWD/host:/files/host"` indica que montaremos a pasta host que criamos, na pasta /files/host dentro do container, para que possamos compartilhar arquivos do host para nosso servidor de arquivos
+# `-v "$PWD/host:/files/host"` indica que montaremos a pasta host que criamos,
+# na pasta /files/host dentro do container, para que possamos compartilhar arquivos do host para nosso servidor de arquivos
 docker run -it --rm -p 8000:8000 -v "$PWD/host:/files/host" file-server
 ```
 
@@ -379,14 +388,19 @@ Executar os comandos a seguir:
 ```shell
 # Atualizar o service `file-server` com as novas configurações, recriando o container
 docker-compose up -d
+
 # Entrar no container
 docker-compose exec file-server sh
+
 # Criar um arquivo no container
 echo "Arquivo que não está em um volume" > arquivo.txt
+
 # Entrar no volume `vol-host`
 cd vol-host
+
 # Criar um arquivo no volume montado
 echo "Arquivo de teste no volume vol-host" > vol.txt
+
 # Sair do container
 exit
 ```
@@ -397,13 +411,17 @@ Executar os comandos a seguir:
 ```shell
 # Listar os services
 docker-compose ps
+
 # Parar o service `file-server`
 docker-compose stop file-server
+
 # Remover o service `file-server`, destruindo o container
 docker-compose rm file-server
+
 # Pressione y seguido de Enter para remover o container file-server
 # Validar a remoção do container
 docker-compose ps
+
 # Criar um novo service `file-server`
 docker-compose up -d
 ```
@@ -414,14 +432,18 @@ Executar os comandos a seguir:
 ```shell
 # Visualizar logs do service file-server
 docker-compose logs file-server
+
 # Criar arquivo que jogaremos no volume `vol-host`
 echo "Arquivo que jogaremos no volume via cp" > cp.txt
+
 # Listar os containers
 docker-compose ps
 # Obter o nome do container, através da coluna `Name`. Utilizaremo de exemplo o nome do container `lab03_file-server_1`. Utilizar o nome que aparecer para você.
+
 # Copiar o arquivo `cp.txt` para o caminho `/files/vol-host/cp.txt` dentro do service `file-server`
 # docker cp <caminho do arquivo dentro do host> <nome do container>:<caminho do arquivo dentro do container>
 docker cp cp.txt lab03_file-server_1:/files/vol-host/cp.txt
+
 # Deletar o arquivo `cp.txt` do host
 rm cp.txt
 ```
