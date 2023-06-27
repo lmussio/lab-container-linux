@@ -72,12 +72,15 @@ Na nova tela aberta, adicionar em `Custom Ports` a porta 8888 do host que deseja
 
 ![image](https://github.com/lmussio/lab-container-linux/assets/7672988/946bd5cc-f01b-4ad9-826e-d0282e805834)
 
+Uma nova aba será aberta, apresentando a tela HTML do serviço rodando na porta 8888 do host, contendo alguns detalhes do container.
 
-### 2.2. Terminal 2
+### 2.2. Terminal 2 (`Tab 3`)
 Abrir um segundo terminal e executar os comandos a seguir.
 ```shell
+# Logar com usuário ubuntu
+su ubuntu
 # Entrar no diretório do lab03
-cd lab03
+cd /home/ubuntu/lab03
 # Listar os containers em execução
 docker ps
 # Entrar no container hello-world
@@ -93,79 +96,111 @@ cat templates/index.html
 exit
 ```
 
-### 2.3. Terminal 1
-Voltar no terminal 1, e interromper a execução do container, pressionando `Ctrl+C`.
+### 2.3. Terminal 1 (`Tab 2`)
+Voltar no terminal 1, e interromper a execução do container, clicando no terminal e pressionando `Ctrl+C`.
 ```shell
 # Criar um container em background com o parâmetro `-d`
 docker run -it -d -p 8888:8080 --name hello-world containertools/hello-world
 # Observe que ocorreu um erro, indicando o nome `hello-world` já está em uso por outro container. Para isso, precisaremos deletar o container anterior que criamos
+
 # Listar os containers em execução
 docker ps
 # Observe que o container anteriormente criado não aparece. Isso ocorre devido ao comando docker ps mostrar apenas os containers em execução.
+
 # Para listarmos todos os containers criados, independente se estão em execução ou não, iremos utilizar o parâmetro `-a`
 docker ps -a
+
 # Deletar o container hello-world. 
 # Opcionalmente podemos especificar o ID do container obtido no `docker ps`, ao invés de seu nome, em qualquer comando que precisarmos mencionar um container.
 docker rm hello-world
+
 # Criar um container em background
 docker run -itd -p 8888:8080 --name hello-world containertools/hello-world
+
 # Listar o container criado
 docker ps
+
 # Obter os logs do container
 docker logs hello-world
+
 # Parar o container hello-world
 docker stop hello-world
+
 # Listar todos os containers
 docker ps -a
 # Observe o status do container hello-world, indicando que foi finalizado (Exited...).
+
 # Startar o container hello-world
 docker start hello-world 
+
 # Listar todos os containers
 docker ps -a
 # Observe o status do container hello-world, indicando que está em operação (Up...)
+
 # Caso o container não pare utilizando o comando `docker stop`, podemos forçar sua interrupção, utilizando o comando `docker kill`.
 docker kill hello-world
+
 # Listar todos os containers
 docker ps -a
 # Observe o status do container hello-world, indicando que foi finalizado (Exited...)
+
 # Startar o container hello-world
 docker start hello-world
+
 # Listar todos os containers
 docker ps -a
 # Observe o tempo indicado no status UP
+
 # Restartar o container hello-world
 docker restart hello-world
+
 # Listar todos os containers
 docker ps -a
 # Observe o tempo indicado no status UP
+
 # Verificar o consumo de recursos do container
 docker stats hello-world
-# Recarregue a página http://192.168.56.102:8888 e observe o consumo dos recursos mudarem. Pressione ``Ctrl+C` para interromper o comando.
+# Recarregue a página da aba aberta na porta 8888 (exemplo: https://dd457848-912e-4902-9173-2933c4c45f46-10-244-4-206-8888.saci.r.killercoda.com/)
+# e observe o consumo dos recursos mudarem comparando com o que está sendo apresentado no `Terminal 1`.
+# Pressione `Ctrl+C` para interromper o comando `docker stats`.
+
 # Obter os eventos Docker gerados na última hora
 docker events --since=1h
-# Observe que foram registrados os eventos das operações de start, stop, kill, entre outros. Pressione ``Ctrl+C` para interromper o comando.
+# Observe que foram registrados os eventos das operações de start, stop, kill, entre outros. Pressione `Ctrl+C` para interromper o comando.
+
 # Conectar na entrada e saída padrão do container hello-world
 docker attach hello-world
-# Recarregue a página http://192.168.56.102:8888 e observe que o log de acesso ao container que conectamos, aparece no terminal. Isso ocorre devido a estarmos conectados à saída padrão do container.
+# Recarregue a página da aba aberta na porta 8888 e volte para o `Terminal 1`. Observe que o log de acesso ao container que conectamos, aparece no terminal. Isso ocorre devido a estarmos conectados à saída padrão do container.
 # Pressione Ctrl+C e observe que interrompemos a execução do serviço dentro do container. Isso ocorre devido a estarmos conectados à entrada padrão do container, que ao pressionarmos Ctrl+C, enviamos um sinal de interrupção (SIGINT) para o serviço em execução.
+
 # Listar todos os containers
 docker ps -a
+
 # Startar o container hello-world
 docker start hello-world
+
 # Entrar no container hello-world
 docker exec -it hello-world sh
+
 # Criar um arquivo de teste
 echo "Isso é um teste" > /tmp/teste.txt
+
 # Sair do container
 exit
+
 # Visualizar as alterações realizadas no container a partir da imagem base
 docker diff hello-world
-# Obter os detalhes do container hello-world. Nesses detalhes são mostrados pontos de montagem, informações de rede, overlayfs, variáveis de ambiente, estado do container, etc.
+
+# Obter os detalhes do container hello-world. Nesses detalhes são mostrados pontos de montagem,
+# informações de rede, overlayfs, variáveis de ambiente, estado do container, etc.
 docker inspect hello-world
+
 # Parar todos os containers em execução 
 docker stop $(docker ps -a -q)
+
 # Remover todos os containers
 docker container prune
+
 # Pressione y seguido de Enter para remover todos os containers
 # Remover todas as imagens não utilizadas
 docker image prune -a
