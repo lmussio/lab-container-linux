@@ -399,7 +399,7 @@ ip link del meu-sw-veth-1
 ip link del meu-switch
 # Remover namespace de rede
 ip netns del cnt
-# Encerrar todos os terminais dentro do container, utilizando o comando `exit`
+# Encerrar todos os terminais dentro de container (Tab 2, Tab 3, etc.), utilizando o comando `exit`
 # Remover cgroups criados
 $(cd /sys/fs/cgroup/pids && rmdir -p cnt/lab02)
 ```
