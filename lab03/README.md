@@ -1,26 +1,29 @@
 # Lab03 - Criação de containers Docker
 > [Voltar](../README.md)
 
-Nesse laboratório, iremos criar containers Docker, utilizando o programa de linha de comando `docker`, através de uma VM Ubuntu Server 20.04, criada no `Lab01` utilizando VirtualBox.
+Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
 
 ## 1. Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do Docker no Ubuntu 20.04, caso não esteja instalado:
 ```shell
+# Logar no usuário `ubuntu`
+su ubuntu
+# Caso pedir senha, utilizar a senha `ubuntu`
+# Entrar no diretório home do usuário ubuntu
+cd /home/ubuntu
 # Utilizaremos o gerenciador de pacotes snap para instalar o Docker
 sudo snap install docker
 ```
 
 Para utilizarmos o docker sem usuário root, precisamos adicionar o grupo docker ao usuário ubuntu:
 ```shell
-# Adicionar o grupo docker no sistema
+# Adicionar o grupo docker no sistema (caso apareça uma mensagem que indique
+# que o grupo docker já existe, mesmo assim continuar com as configurações a seguir)
 sudo addgroup --system docker
 # Adiciona o usuário ubuntu no grupo docker
 sudo adduser $USER docker
 # Logar utilizando o novo grupo
 newgrp docker
-# Desabilitar e reabilitar o Docker Daemon
-sudo snap disable docker
-sudo snap enable docker
 ```
 
 Baixar a imagem do Linux Alpine que utilizaremos para criação do nosso RootFS:
@@ -35,49 +38,10 @@ mkdir lab03
 cd lab03
 ```
 
-### 1.1. Obter o IP da VM na rede do host
-```shell
-ip addr show
-```
-Exemplo de resposta:
-```shell
-ubuntu@servidor01:~$ ip addr
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 08:00:27:75:74:17 brd ff:ff:ff:ff:ff:ff
-    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic enp0s3
-       valid_lft 85976sec preferred_lft 85976sec
-    inet6 fe80::a00:27ff:fe75:7417/64 scope link
-       valid_lft forever preferred_lft forever
-3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 08:00:27:21:0d:a7 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.56.102/24 brd 192.168.56.255 scope global dynamic enp0s8
-       valid_lft 477sec preferred_lft 477sec
-    inet6 fe80::a00:27ff:fe21:da7/64 scope link
-       valid_lft forever preferred_lft forever
-4: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
-    link/ether 02:42:a3:b8:56:d3 brd ff:ff:ff:ff:ff:ff
-    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
-       valid_lft forever preferred_lft forever
-    inet6 fe80::42:a3ff:feb8:56d3/64 scope link
-       valid_lft forever preferred_lft forever
-```
-No exemplo acima, a interface `enp0s8`, que possuí o MAC Address `08:00:27:21:0d:a7`, correspondente ao `Adaptador 2` da VM no VirtualBox configurado no modo `Placa de rede exclusiva de hospedeiro (host-only)`, possuí o IP `192.168.56.102`. Utilizaremos esse IP para demonstrações abaixo. Substitua o IP `192.168.56.102` pelo IP correspondente à sua VM.
-
-Utilizar o comando a seguir para obter seu IP:
-```shell
-ip route | grep 192.168.56 | awk '{print $9}'
-```
-
 ## 2. Docker CLI
 Criaremos um container Docker utilizando o comando `docker`.
 
-### 2.1. Terminal 1
+### 2.1. Terminal 1 (`Tab 2`)
 Abrir um novo terminal e executar os comandos a seguir.
 ```shell
 # Entrar no diretório do lab03
