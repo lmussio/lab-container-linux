@@ -1,7 +1,7 @@
 # Lab04 - Criação de pods K8S
 > [Voltar](../README.md)
 
-Nesse laboratório, iremos criar pods Kubernetes, utilizando o [microk8s](https://microk8s.io/) da Canonical para criação do cluster K8S, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
+Nesse laboratório, iremos criar pods Kubernetes, utilizando o [k3s](https://k3s.io/) da CNCF para criação do cluster K8S, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
 
 ## 1. Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do Microk8s no host, que chamaremos de `Node 1`.
@@ -263,27 +263,27 @@ sudo ls -la /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec5624062
 sudo echo "Olá do host" > /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc/no-host.txt
 ```
 
-Acessar a URL [http://hello-world-192-168-56-102.nip.io/files](http://hello-world-192-168-56-102.nip.io/files) e verificar se o arquivo criado é listado na página.
+Atualizar a página de acesso na porta 80 e verificar se o arquivo criado é listado na página.
 
 Obtenha a relação de pods criados:
 ```shell
 kubectl get pods -o wide
 ```
 ```
-NAME                                      READY   STATUS    RESTARTS   AGE   IP             NODE                    NOMINATED NODE   READINESS GATES
-hello-world-deployment-7c56c6f587-6l5cp   1/1     Running   0          21m   10.1.232.204   192-168-56-102.nip.io   <none>           <none>
-hello-world-deployment-7c56c6f587-brrcc   1/1     Running   0          21m   10.1.232.205   192-168-56-102.nip.io   <none>           <none>
-hello-world-deployment-7c56c6f587-kldj8   1/1     Running   0          21m   10.1.232.206   192-168-56-102.nip.io   <none>           <none>
+NAME                                      READY   STATUS    RESTARTS   AGE   IP           NODE     NOMINATED NODE   READINESS GATES
+hello-world-deployment-5667c58f78-q89s5   1/1     Running   0          11m   10.42.0.12   ubuntu   <none>           <none>
+hello-world-deployment-5667c58f78-cbzgn   1/1     Running   0          11m   10.42.0.10   ubuntu   <none>           <none>
+hello-world-deployment-5667c58f78-d7g4s   1/1     Running   0          11m   10.42.0.11   ubuntu   <none>           <none>
 ```
 
-Fique realizando o refresh da página [http://hello-world-192-168-56-102.nip.io/](http://hello-world-192-168-56-102.nip.io/) e observe que o IP e Hostname variam a cada refresh. O Kubernetes distribuí proporcionalmente as requisições para os pods que correspondem ao service `hello-world-service` que criamos.
+Fique realizando o refresh da página de acesso na porta 80 e observe que o IP e Hostname variam a cada refresh. O Kubernetes distribuí proporcionalmente as requisições para os pods que correspondem ao service `hello-world-service` que criamos.
 
 Escolha um pod para deletarmos:
 ```shell
 kubectl delete pod hello-world-deployment-7c56c6f587-6l5cp
 ```
 
-Fique realizando o refresh da página [http://hello-world-192-168-56-102.nip.io/](http://hello-world-192-168-56-102.nip.io/) e observe que um novo pod foi criado automaticamente, para garantir que o número de réplicas seja 3, conforme configurado no `hello-world-deployment`.
+Fique realizando o refresh da página de acesso na porta 80 e observe que um novo pod foi criado automaticamente, para garantir que o número de réplicas seja 3, conforme configurado no `hello-world-deployment`.
 
 Verificar o pod novo criado automaticamente pelo Kubernetes:
 ```shell
