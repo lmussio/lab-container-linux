@@ -74,6 +74,12 @@ Na nova tela aberta, adicionar em `Custom Ports` a porta 8888 do host que deseja
 
 Uma nova aba será aberta, apresentando a tela HTML do serviço rodando na porta 8888 do host, contendo alguns detalhes do container.
 
+---
+
+:grey_exclamation: Atenção! Caso demore muito para carregar a página de acesso à porta selecionada (> 1 min), recomendo resetar o ambiente Killercoda.
+
+---
+
 ### 2.2. Terminal 2 (`Tab 3`)
 Abrir um segundo terminal e executar os comandos a seguir.
 ```shell
