@@ -313,7 +313,11 @@ Agora limitaremos a criação de processos no container, através da configuraç
 # Criar um diretório cnt/lab02 no cgroup pids. O diretório /sys/fs/cgroup é um diretório de arquivos que contém 
 # os grupos de controle para os processos Linux. Quando criamos uma nova pasta dentro de /sys/fs/cgroup/<cgroup>, 
 # o Kernel Linux cria um grupo de controle dedicado, onde podemos especificar os processos que serão geridos por ele.
+mount -t tmpfs cgroup_root /sys/fs/cgroup
+mkdir -p /sys/fs/cgroup/pids
+mount -t cgroup -o pids none /sys/fs/cgroup/pids
 mkdir -p /sys/fs/cgroup/pids/cnt/lab02
+
 # Limitar a quantidade de processos que podem ser criados dentro do container em 3
 echo 3 > /sys/fs/cgroup/pids/cnt/lab02/pids.max
 ```
@@ -339,16 +343,6 @@ cd && cd lab02
 # Entrar no container, através do shell (/bin/sh) com o parâmetro `-v`
 ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh -v
 ```
-### Terminal 2 (`Tab 3`)
-Em em terceiro terminal, realizar os seguintes comandos:
-```shell
-# Trocar para o usuário root
-sudo su
-# Acessar a pasta do container no host
-cd && cd lab02
-# Entrar no container, através do shell (/bin/sh) com o parâmetro `-v`
-ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh -v
-```
 
 ### No host (`Tab 1`)
 ```shell
@@ -356,21 +350,20 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 # Nesse caso, serão os dois shells que estão rodando dentro do container.
 CNT_PID=$(lsns -t pid | grep "sh -v" | awk '{print $4}')
 # Configurar o cgroup criado anteriormente, para controlar os processos em execução dentro do container
-echo "$CNT_PID" > /sys/fs/cgroup/pids/cnt/lab02/tasks
+for pid in $CNT_PID; do echo "$pid" > /sys/fs/cgroup/pids/cnt/lab02/cgroup.procs; done
 ```
 
 ### Terminal 1 (`Tab 2`)
 ```shell
 # Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
-sleep 30
-```
-### Terminal 2 (`Tab 3`)
-```shell
-# Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
-sleep 30
-# Observe que ao tentar criar um novo processo, o Kernel Linux não permite que o processo seja criado, 
-# dado que extrapolou o limite imposto pelo cgroup configurado. No caso temos 2 processos `sh -v` e 1 processo `sleep 30`, 
-# e estamos tentando executar o quarto processo `sleep 30`.
+sleep 30 &
+# Criar um segundo processo com comando sleep
+sleep 30 &
+# Criar um terceiro processo com comando sleep
+sleep 30 &
+# Observe que ao tentar criar um terceiro processo, o Kernel Linux não permite que o processo seja criado, 
+# dado que extrapolou o limite imposto pelo cgroup configurado. No caso temos 1 processo `sh -v` e 2 processos `sleep 30`, 
+# e estamos tentando executar o 4º processo `sleep 30`.
 ```
 
 ### No host (`Tab 1`)
@@ -378,16 +371,16 @@ sleep 30
 # Remover o limite imposto anteriormente
 echo max > /sys/fs/cgroup/pids/cnt/lab02/pids.max
 ```
+
 ### Terminal 1 (`Tab 2`)
 ```shell
-# Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
-sleep 30
-```
-### Terminal 2 (`Tab 3`)
-```shell
-# Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
-sleep 30
-# Observe que agora que removemos o limite imposto anteriormente, conseguimos criar o quarto processo `sleep 30` dentro do container.
+# Criar novos processos com o comando sleep, mantendo ele em execução por 30 segundos
+sleep 30 &
+sleep 30 &
+sleep 30 &
+sleep 30 &
+sleep 30 &
+# Observer que agora não existe limite na criação de processos.
 ```
 
 ## Limpeza
