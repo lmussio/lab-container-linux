@@ -6,12 +6,20 @@ Nesse laboratório, iremos criar pods Kubernetes, utilizando o [k3s](https://k3s
 ## 1. Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do Microk8s no host, que chamaremos de `Node 1`.
 ```shell
+# Acessar usuário root
+sudo su
 # Instalar K3S com kubectl
 curl -sfL https://get.k3s.io | sh -
+# Habilitar permissão para usuário ubuntu obter configuração de acesso ao K8S
+echo K3S_KUBECONFIG_MODE=\"644\" >> /etc/systemd/system/k3s.service.env
+# Restart do serviço k3s para carregar nova config
+systemctl restart k3s
 ```
 
 Verificar se o cluster está funcionando:
 ```shell
+# Logar com usuário ubuntu (caso pedir senha, utilizar `ubuntu`)
+su ubuntu
 # Obter informações dos nós do cluster K8S
 kubectl get nodes
 # Observe que possuímos uma única instância de K8S
@@ -273,8 +281,12 @@ Obter o caminho do volume em `Path:`. Exemplo: `/var/lib/rancher/k3s/storage/pvc
 ```shell
 # Listar os arquivos do volume a partir do host
 sudo ls -la /var/lib/rancher/k3s/storage/pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e_default_hello-world-pvc
+# Entrar no usuário root
+sudo su
 # Adicionar um arquivo no volume a partir do host
-sudo echo "Olá do host" > /var/lib/rancher/k3s/storage/pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e_default_hello-world-pvc/no-host.txt
+echo "Olá do host" > /var/lib/rancher/k3s/storage/pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e_default_hello-world-pvc/no-host.txt
+# Sair do usuário root
+exit
 ```
 
 Atualizar a página de acesso na porta 80, endpoint `/files` (exemplo: `https://a3eef979-0f8e-4575-b372-af4adb7cb0d5-10-244-4-8-80.saci.r.killercoda.com/files`) e verificar se o arquivo criado é listado na página.
