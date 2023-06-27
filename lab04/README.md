@@ -127,7 +127,7 @@ spec:
 ```
 Nesse exemplo, o service criado é do tipo `ClusterIP`, sendo acessível apenas de dentro do cluster K8S. Criaremos um `Ingress` para permitir o acesso ao nosso serviço de maneira externa ao cluster.
 
-Criar o arquivo de configuração de ingress para permitir acessarmos nosso serviço a partir da URL [http://hello-world-192-168-56-102.nip.io](http://hello-world-192-168-56-102.nip.io). Trocar o `host: hello-world-192-168-56-102.nip.io` pelo IP correspondente à sua VM (em caso de dúvida, executar o seguinte comando: `echo hello-world-$HOSTNAME` e trocar o `host` por esse valor apresentado pelo comando):
+Criar o arquivo de configuração de ingress para permitir acessarmos nosso serviço a partir da URL gerada da página de acesso na porta 80 em `Traffic / Ports`:
 ```shell
 nano ingress.yaml
 ```
