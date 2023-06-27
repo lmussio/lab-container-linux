@@ -44,8 +44,10 @@ Criaremos um container Docker utilizando o comando `docker`.
 ### 2.1. Terminal 1 (`Tab 2`)
 Abrir um novo terminal e executar os comandos a seguir.
 ```shell
+# Logar com usuário ubuntu
+su ubuntu
 # Entrar no diretório do lab03
-cd lab03
+cd /home/ubuntu/lab03
 # Listar os comandos disponíveis no docker
 docker --help
 # Listar os containers em execução
@@ -62,7 +64,14 @@ docker run -it -p 8888:8080 --name hello-world containertools/hello-world
 # `containertools/hello-world`: Imagem a partir da qual o container será criado
 ```
 
-Acessar o navegador na URL [http://192.168.56.102:8888](http://192.168.56.102:8888). Observe a contagem de PIDs.
+Clicar no botão menu localizado no canto direito superior da tela, e selecionar a opção `Traffic / Ports`:
+
+![image](https://github.com/lmussio/lab-container-linux/assets/7672988/74ae258d-bac3-4f7f-91ce-3ce08061cd83)
+
+Na nova tela aberta, adicionar em `Custom Ports` a porta 8888 do host que desejamos acessar, e pressionar botão `Access`:
+
+![image](https://github.com/lmussio/lab-container-linux/assets/7672988/946bd5cc-f01b-4ad9-826e-d0282e805834)
+
 
 ### 2.2. Terminal 2
 Abrir um segundo terminal e executar os comandos a seguir.
