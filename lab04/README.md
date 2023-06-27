@@ -237,15 +237,15 @@ Vamos obter os detalhes do volume criado através da configuração PVC.
 kubectl get pv
 ```
 ```
-NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                     STORAGECLASS        REASON   AGE
-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25   1Gi        RWX            Delete           Bound    default/hello-world-pvc   microk8s-hostpath            11m
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                     STORAGECLASS   REASON   AGE
+pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e   1Gi        RWO            Delete           Bound    default/hello-world-pvc   local-path              5m24s
 ```
 ```shell
 # Obter o detalhe do volume persistente criado
-kubectl describe pv pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
+kubectl describe pv pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e
 ```
 ```
-Name:              pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629
+Name:              pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e
 Labels:            <none>
 Annotations:       pv.kubernetes.io/provisioned-by: rancher.io/local-path
 Finalizers:        [kubernetes.io/pv-protection]
@@ -262,22 +262,22 @@ Node Affinity:
 Message:           
 Source:
     Type:          HostPath (bare host directory volume)
-    Path:          /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc
+    Path:          /var/lib/rancher/k3s/storage/pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e_default_hello-world-pvc
     HostPathType:  DirectoryOrCreate
 Events:            <none>
 ```
 Observer que o StorageClass utilizado por esse volume persistente é do tipo `local-path`, que foi instalado junto ao k3s. Essa classe de storage realiza a montagem do volume local do host (`/var/lib/rancher/k3s/storage/<namespace-nome_da_config_pvc-nome_do_pvc>`) dentro do caminho especificado no container. 
 
-Obter o caminho do volume em `Path:`. Exemplo: ` /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc`
+Obter o caminho do volume em `Path:`. Exemplo: `/var/lib/rancher/k3s/storage/pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e_default_hello-world-pvc`
 
 ```shell
 # Listar os arquivos do volume a partir do host
-sudo ls -la /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc
+sudo ls -la /var/lib/rancher/k3s/storage/pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e_default_hello-world-pvc
 # Adicionar um arquivo no volume a partir do host
-sudo echo "Olá do host" > /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc/no-host.txt
+sudo echo "Olá do host" > /var/lib/rancher/k3s/storage/pvc-14861460-2a15-4d36-aa2a-8915ff7ba14e_default_hello-world-pvc/no-host.txt
 ```
 
-Atualizar a página de acesso na porta 80 e verificar se o arquivo criado é listado na página.
+Atualizar a página de acesso na porta 80, endpoint `/files` (exemplo: `https://a3eef979-0f8e-4575-b372-af4adb7cb0d5-10-244-4-8-80.saci.r.killercoda.com/files`) e verificar se o arquivo criado é listado na página.
 
 Obtenha a relação de pods criados:
 ```shell
@@ -285,19 +285,25 @@ kubectl get pods -o wide
 ```
 ```
 NAME                                      READY   STATUS    RESTARTS   AGE   IP           NODE     NOMINATED NODE   READINESS GATES
-hello-world-deployment-5667c58f78-q89s5   1/1     Running   0          11m   10.42.0.12   ubuntu   <none>           <none>
-hello-world-deployment-5667c58f78-cbzgn   1/1     Running   0          11m   10.42.0.10   ubuntu   <none>           <none>
-hello-world-deployment-5667c58f78-d7g4s   1/1     Running   0          11m   10.42.0.11   ubuntu   <none>           <none>
+hello-world-deployment-5667c58f78-dkhxh   1/1     Running   0          8m    10.42.0.11   ubuntu   <none>           <none>
+hello-world-deployment-5667c58f78-f7xck   1/1     Running   0          8m    10.42.0.10   ubuntu   <none>           <none>
+hello-world-deployment-5667c58f78-b5p2k   1/1     Running   0          8m    10.42.0.12   ubuntu   <none>           <none>
 ```
 
-Fique realizando o refresh da página de acesso na porta 80 e observe que o IP e Hostname variam a cada refresh. O Kubernetes distribuí proporcionalmente as requisições para os pods que correspondem ao service `hello-world-service` que criamos.
+Fique realizando o refresh da página de acesso na porta 80, endpoint `/` (exemplo: `https://a3eef979-0f8e-4575-b372-af4adb7cb0d5-10-244-4-8-80.saci.r.killercoda.com/`), e observe que o IP e Hostname variam a cada refresh. O Kubernetes distribuí proporcionalmente as requisições para os pods que correspondem ao service `hello-world-service` que criamos.
 
 Escolha um pod para deletarmos:
 ```shell
-kubectl delete pod hello-world-deployment-7c56c6f587-6l5cp
+kubectl delete pod hello-world-deployment-5667c58f78-f7xck
 ```
 
-Fique realizando o refresh da página de acesso na porta 80 e observe que um novo pod foi criado automaticamente, para garantir que o número de réplicas seja 3, conforme configurado no `hello-world-deployment`.
+---
+
+:grey_exclamation: `Atenção`: A operação de delete pode demorar um pouco, aguarde uns instantes. Caso demore muito (> 2 min), pressionar `Ctrl+C` na tentativa de cancelar o comando, e realizar o comando de delete novamente.
+
+---
+
+Fique realizando o refresh da página de acesso na porta 80, endpoint `/` (exemplo: `https://a3eef979-0f8e-4575-b372-af4adb7cb0d5-10-244-4-8-80.saci.r.killercoda.com/`), e observe que um novo pod foi criado automaticamente, para garantir que o número de réplicas seja 3, conforme configurado no `hello-world-deployment`.
 
 Verificar o pod novo criado automaticamente pelo Kubernetes:
 ```shell
