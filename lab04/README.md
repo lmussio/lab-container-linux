@@ -1,75 +1,46 @@
 # Lab04 - Criação de pods K8S
 > [Voltar](../README.md)
 
-Nesse laboratório, iremos criar pods Kubernetes, utilizando o [microk8s](https://microk8s.io/) da Canonical para criação do cluster K8S, através de uma VM Ubuntu Server 20.04, criada no `Lab01` utilizando VirtualBox. Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
+Nesse laboratório, iremos criar pods Kubernetes, utilizando o [microk8s](https://microk8s.io/) da Canonical para criação do cluster K8S, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
 
 ## 1. Preparação do ambiente para laboratório
-Para esse laboratório, precisaremos realizar a instalação do Microk8s no servidor (VM Ubuntu 20.04 criada no `Lab01`), que chamaremos de `Node 1`.
+Para esse laboratório, precisaremos realizar a instalação do Microk8s no host, que chamaremos de `Node 1`.
 ```shell
-# Obter o IP da rede interna da VM
-MEU_IP=$(ip route | grep 192.168.56 | awk '{print $9}' | sed 's/\./-/g')
-# Configurar o hostname do servidor01
-sudo hostnamectl set-hostname $MEU_IP.nip.io
-# Utilizaremos o gerenciador de pacotes snap para instalar o Microk8s
-sudo snap install microk8s --classic --channel=1.21/stable
-# Instalar o kubectl
-sudo snap install kubectl --classic --channel=1.23/stable
-```
-
-Para utilizarmos o microk8s sem usuário root, precisamos adicionar o grupo microk8s ao usuário ubuntu:
-```shell
-# Adicionar o usuário ubuntu ao grupo microk8s
-sudo usermod -a -G microk8s $USER
-# Mudar o owner do diretório de configurações do kubectl para o usuário ubuntu
-sudo chown -f -R $USER ~/.kube
-# Criar uma nova sessão do usuário ubuntu, para surtir os efeitos da inclusão no grupo microk8s
-su - $USER
+# Instalar K3S com kubectl
+curl -sfL https://get.k3s.io | sh -
 ```
 
 Verificar se o cluster está funcionando:
 ```shell
-# Obter status do cluster. Aguardar até que o comando nos responda com o status do cluster.
-microk8s status --wait-ready
-# Observar no topo da resposta desse comando, a mensagem `microk8s is running`. Isso significa que o cluster está funcionando.
-# Configurar o kubectl para administrar o cluster microk8s
-microk8s config > $HOME/.kube/config
 # Obter informações dos nós do cluster K8S
 kubectl get nodes
 # Observe que possuímos uma única instância de K8S
 ```
 
-```shell
-# Habilitar recursos de storage, dns e ingress Nginx no cluster Microk8s
-sudo microk8s enable dns storage ingress
-```
-
 ## 2. Kubernetes Hello-World
 ### No Node 1
-Acessar a pasta home do usuário e criar a pasta lab03:
+Acessar a pasta home do usuário e criar a pasta lab04:
 ```shell
 cd
 mkdir lab04
 cd lab04
 ```
 
-Obter o hostname da VM que configuramos anteriormente:
-```shell
-echo $HOSTNAME
-```
-
-Exemplo de hostname: `192-168-56-102.nip.io`. Utilizaremos esse hostname para configurar nossa URL de acesso ao serviço Hello-World que iremos configurar. Guardar o seu hostname para uso nas etapas a seguir.
-
-`Observação`: cada espaço no arquivo de configuração faz diferença, dado que os arquivos de configuração serão criados utilizando o formato YAML. Criar os arquivos de configuração exatamente como mostrados nesse laboratório. Utilize ferramentas online de validação do YAML em caso de dúvidas, como exemplo o [YAML Checker](https://yamlchecker.com/).
+---
+:exclamation::exclamation::exclamation: `Atenção`: cada espaço no arquivo de configuração faz diferença, dado que os arquivos de configuração serão criados utilizando o formato YAML. Criar os arquivos de configuração exatamente como mostrados nesse laboratório. Utilize ferramentas online de validação do YAML em caso de dúvidas, como exemplo o [YAML Checker](https://yamlchecker.com/).
 
 Após alterar cada arquivo de configuração, para salvar, seguir a seguinte sequência de comandos:
 - Pressione Ctrl+X
 - Pressione Y
 - Pressione Enter
 
+---
+
 Criar o arquivo de configuração de volume para o nosso serviço:
 ```shell
 nano pvc.yaml
 ```
+
 Incluir o seguinte conteúdo:
 ```yaml
 apiVersion: v1
@@ -80,7 +51,8 @@ metadata:
     app: hello-world # Label aplicada no PVC criado, contendo o nome da aplicação
 spec:
   accessModes:
-    - ReadWriteMany # Permite que vários containers acessem o mesmo volume persistente
+    - ReadWriteOnce # Permite que único container acesse o mesmo volume persistente
+  storageClassName: local-path
   resources:
     requests:
       storage: 1Gi # Limita o armazenamento em disco do volume em 1GB
@@ -91,6 +63,7 @@ Criar o arquivo de configuração de deployment para criação dos pods do nosso
 ```shell
 nano deployment.yaml
 ```
+
 Incluir o seguinte conteúdo:
 ```yaml
 apiVersion: apps/v1
@@ -166,8 +139,7 @@ metadata:
   name: hello-world-ingress # Nome da configuração de Ingress
 spec:
   rules:
-  - host: hello-world-192-168-56-102.nip.io # Host HTTP necessário para utilização desse ingress
-    http:
+  - http:
       paths:
       - path: / # Permite acesso a todos os recursos/páginas do nosso serviço (/qualquer/caminho/possivel)
         pathType: Prefix # Indica que o path indicado acima, trata-se de um prefixo da URL requisitada
@@ -242,7 +214,7 @@ echo "Arquivo de teste de dentro do container" > no-container.txt
 exit
 ```
 
-Acessar a URL [http://hello-world-192-168-56-102.nip.io/files](http://hello-world-192-168-56-102.nip.io/files) e verificar se o arquivo criado é listado na página.
+Em `Traffic Port Accessor`, acessar porta 80 e verificar se o arquivo criado é listado na página.
 
 ### No Node 1
 Vamos obter os detalhes do volume criado através da configuração PVC.
@@ -259,35 +231,36 @@ pvc-1925a2db-77e7-4b27-aae6-961dfd455d25   1Gi        RWX            Delete     
 kubectl describe pv pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
 ```
 ```
-Name:            pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
-Labels:          <none>
-Annotations:     hostPathProvisionerIdentity: 192-168-56-102.nip.io
-                 pv.kubernetes.io/provisioned-by: microk8s.io/hostpath
-Finalizers:      [kubernetes.io/pv-protection]
-StorageClass:    microk8s-hostpath
-Status:          Bound
-Claim:           default/hello-world-pvc
-Reclaim Policy:  Delete
-Access Modes:    RWX
-VolumeMode:      Filesystem
-Capacity:        1Gi
-Node Affinity:   <none>
-Message:         
+Name:              pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629
+Labels:            <none>
+Annotations:       pv.kubernetes.io/provisioned-by: rancher.io/local-path
+Finalizers:        [kubernetes.io/pv-protection]
+StorageClass:      local-path
+Status:            Bound
+Claim:             default/hello-world-pvc
+Reclaim Policy:    Delete
+Access Modes:      RWO
+VolumeMode:        Filesystem
+Capacity:          1Gi
+Node Affinity:     
+  Required Terms:  
+    Term 0:        kubernetes.io/hostname in [ubuntu]
+Message:           
 Source:
     Type:          HostPath (bare host directory volume)
-    Path:          /var/snap/microk8s/common/default-storage/default-hello-world-pvc-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
-    HostPathType:  
+    Path:          /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc
+    HostPathType:  DirectoryOrCreate
 Events:            <none>
 ```
-Observer que o StorageClass utilizado por esse volume persistente é do tipo `microk8s-hostpath`, que foi o que instalamos ao habilitarmos o storage no microk8s (`sudo microk8s enable storage`). Essa classe de storage realiza a montagem do volume local do host (`/var/snap/microk8s/common/default-storage/<namespace-nome_da_config_pvc-nome_do_pvc>`) dentro do caminho especificado no container. 
+Observer que o StorageClass utilizado por esse volume persistente é do tipo `local-path`, que foi instalado junto ao k3s. Essa classe de storage realiza a montagem do volume local do host (`/var/lib/rancher/k3s/storage/<namespace-nome_da_config_pvc-nome_do_pvc>`) dentro do caminho especificado no container. 
 
-Obter o caminho do volume em `Path:`. Exemplo: `/var/snap/microk8s/common/default-storage/default-hello-world-pvc-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25`
+Obter o caminho do volume em `Path:`. Exemplo: ` /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc`
 
 ```shell
 # Listar os arquivos do volume a partir do host
-sudo ls -la /var/snap/microk8s/common/default-storage/default-hello-world-pvc-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25
+sudo ls -la /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc
 # Adicionar um arquivo no volume a partir do host
-sudo echo "Olá do host" > /var/snap/microk8s/common/default-storage/default-hello-world-pvc-pvc-1925a2db-77e7-4b27-aae6-961dfd455d25/no-host.txt
+sudo echo "Olá do host" > /var/lib/rancher/k3s/storage/pvc-46c8aa5e-656b-45e7-8e2e-87ec56240629_default_hello-world-pvc/no-host.txt
 ```
 
 Acessar a URL [http://hello-world-192-168-56-102.nip.io/files](http://hello-world-192-168-56-102.nip.io/files) e verificar se o arquivo criado é listado na página.
