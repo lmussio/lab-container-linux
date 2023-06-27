@@ -209,12 +209,7 @@ docker image prune -a
 ```
 
 ## 3. Dockerfile
-Criaremos uma imagem de container de um servidor de arquivo, utilizando Dockerfile. Para isso, utilizaremos o comando `nano Dockerfile`, para editar o arquivo `Dockerfile` conforme indicado no decorrer do laboratório.
-
-Após alterar o arquivo `Dockerfile`, para salvar, seguir a seguinte sequência de comandos:
-- Pressione Ctrl+X
-- Pressione Y
-- Pressione Enter
+Criaremos uma imagem de container de um servidor de arquivo, utilizando Dockerfile. Para isso, no host (`Tab 1`), utilizaremos o comando `nano Dockerfile`, para editar o arquivo `Dockerfile` conforme indicado no decorrer do laboratório.
 
 ```shell
 # Baixar a image alpine
@@ -232,6 +227,11 @@ RUN apk add python3
 CMD ["python3", "-m", "http.server"]
 ```
 
+Após alterar o arquivo `Dockerfile`, para salvar, seguir a seguinte sequência de comandos:
+- Pressione Ctrl+X
+- Pressione Y
+- Pressione Enter
+  
 A instrução `FROM alpine` indica que nossa imagem será construída a partir da imagem [alpine](https://hub.docker.com/_/alpine). A instrução `RUN apk add python3` indica para rodar o comando `apk add python3`, que realiza a instalação do Python 3 na imagem do container. A instrução `CMD ["python3", "-m", "http.server"]` indica que o container será iniciado com o comando `python3 -m http.server` quando for criado.
 
 Executar os comandos a seguir:
@@ -245,7 +245,7 @@ docker build -t file-server .
 docker run -it --rm -p 8000:8000 file-server
 ```
 
-Acessar [http://192.168.56.102:8000](http://192.168.56.102:8000). Observe que é possível visualizar todos os arquivos dentro do nosso container, porém para nosso servidor de arquivos, queremos limitar o acesso apenas a uma pasta específica do nosso container. Para isso, criaremos a pasta `/files` utilizando a instrução `WORKDIR /files` na imagem do nosso container, que ficará dedicada ao servidor de arquivos. Essa instrução realiza a criação da pasta indicada caso não exista, e entra nessa pasta, fazendo com que as instruções seguintes sejam executadas a partir dessa pasta indicada. 
+Semelhante ao passo 2.1, em `Traffic / Ports`, acessar a porta 8000. Observe que é possível visualizar todos os arquivos dentro do nosso container, porém para nosso servidor de arquivos, queremos limitar o acesso apenas a uma pasta específica do nosso container. Para isso, criaremos a pasta `/files` utilizando a instrução `WORKDIR /files` na imagem do nosso container, que ficará dedicada ao servidor de arquivos. Essa instrução realiza a criação da pasta indicada caso não exista, e entra nessa pasta, fazendo com que as instruções seguintes sejam executadas a partir dessa pasta indicada. 
 
 Editar o arquivo Dockerfile:
 ```shell
@@ -272,7 +272,7 @@ docker build -t file-server .
 docker run -it --rm -p 8000:8000 file-server
 ```
 
-Acessar [http://192.168.56.102:8000](http://192.168.56.102:8000). Observe que agora não aparecem arquivos no nosso servidor, dado que criamos uma pasta vazia na imagem do container. Agora criaremos um arquivo dentro da pasta `/files` na imagem do container:
+Atualizar a página de acesso na porta 8000. Observe que agora não aparecem arquivos no nosso servidor, dado que criamos uma pasta vazia na imagem do container. Agora criaremos um arquivo dentro da pasta `/files` na imagem do container:
 
 Editar o arquivo Dockerfile:
 ```shell
@@ -301,7 +301,7 @@ docker build -t file-server .
 docker run -it --rm -p 8000:8000 file-server
 ```
 
-Acessar [http://192.168.56.102:8000](http://192.168.56.102:8000). Clicar no arquivo `teste.txt`. Observe que o conteúdo do arquivo corresponde ao que indicamos no arquivo Dockerfile. 
+Atualizar a página de acesso na porta 8000. Clicar no arquivo `teste.txt`. Observe que o conteúdo do arquivo corresponde ao que indicamos no arquivo Dockerfile. 
 
 Executar os comandos a seguir:
 ```shell
@@ -315,7 +315,7 @@ echo "Arquivo de teste do host" > host/teste-host.txt
 docker run -it --rm -p 8000:8000 -v "$PWD/host:/files/host" file-server
 ```
 
-Acessar [http://192.168.56.102:8000](http://192.168.56.102:8000). Clicar em `host/` e em seguida clicar em `teste-host.txt`. Observe que o conteúdo do arquivo corresponde ao que criamos a partir do host. Pressione `Ctrl+C` para interromper a execução do container.
+Atualizar a página de acesso na porta 8000. Clicar em `host/` e em seguida clicar em `teste-host.txt`. Observe que o conteúdo do arquivo corresponde ao que criamos a partir do host. Pressione `Ctrl+C` para interromper a execução do container.
 
 ## 4. Docker Compose
 Criaremos o arquivo `docker-compose.yml` para especificarmos o serviço `file-server`, contendo toda a configuração necessária para execução do nosso servidor de arquivos.
@@ -344,7 +344,7 @@ docker-compose up -d
 ```
 O parâmetro `-d` indica para executar o container em background.
 
-Acessar [http://192.168.56.102:8000](http://192.168.56.102:8000). Explorar os arquivos listados pelo servidor.
+Atualizar a página de acesso na porta 8000. Explorar os arquivos listados pelo servidor.
 
 Incluir no arquivo `docker-compose.yml` o novo volume `vol-host` gerido pelo Docker:
 ```shell
@@ -385,7 +385,7 @@ echo "Arquivo de teste no volume vol-host" > vol.txt
 exit
 ```
 
-Acessar [http://192.168.56.102:8000](http://192.168.56.102:8000). Clicar em `arquivo.txt` e verificar seu conteúdo. Voltar para [http://192.168.56.102:8000](http://192.168.56.102:8000). Clicar em `vol-host/`, em seguida clicar em `vol.txt` e verificar seu conteúdo.
+Atualizar a página de acesso na porta 8000.  Clicar em `arquivo.txt` e verificar seu conteúdo. Voltar para a página anterior. Clicar em `vol-host/`, em seguida clicar em `vol.txt` e verificar seu conteúdo.
 
 Executar os comandos a seguir:
 ```shell
@@ -402,7 +402,7 @@ docker-compose ps
 docker-compose up -d
 ```
 
-Acessar [http://192.168.56.102:8000](http://192.168.56.102:8000). Observe que o arquivo `arquivo.txt` não aparece na listagem de arquivos. Como ele foi criado em um diretório que não existia um volume montado, quando excluímos o container através do comando `docker-compose rm file-server`, todos os arquivos que não estavam em volumes também foram removidos. O arquivo `teste.txt` se manteve na listagem de arquivos, devido a ele estar contido na imagem base do container. Observe que os arquivos criados em volumes, se mantiveram na listagem de arquivos.
+Atualizar a página de acesso na porta 8000. Observe que o arquivo `arquivo.txt` não aparece na listagem de arquivos. Como ele foi criado em um diretório que não existia um volume montado, quando excluímos o container através do comando `docker-compose rm file-server`, todos os arquivos que não estavam em volumes também foram removidos. O arquivo `teste.txt` se manteve na listagem de arquivos, devido a ele estar contido na imagem base do container. Observe que os arquivos criados em volumes, se mantiveram na listagem de arquivos.
 
 Executar os comandos a seguir:
 ```shell
@@ -420,7 +420,7 @@ docker cp cp.txt lab03_file-server_1:/files/vol-host/cp.txt
 rm cp.txt
 ```
 
-Acessar [http://192.168.56.102:8000](http://192.168.56.102:8000). Clicar em `vol-host/` e em seguida clicar em `cp.txt`. Observe que o arquivo `cp.txt` foi copiado para dentro do volume `vol-host`.
+Atualizar a página de acesso na porta 8000. Clicar em `vol-host/` e em seguida clicar em `cp.txt`. Observe que o arquivo `cp.txt` foi copiado para dentro do volume `vol-host`.
 
 Para destruir todos os services, e redes associadas, executar o seguinte comando:
 ```shell
