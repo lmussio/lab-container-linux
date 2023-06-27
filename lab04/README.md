@@ -1,7 +1,7 @@
 # Lab04 - Criação de pods K8S
 > [Voltar](../README.md)
 
-Nesse laboratório, iremos criar pods Kubernetes, utilizando o [k3s](https://k3s.io/) da CNCF para criação do cluster K8S, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
+Nesse laboratório, iremos criar pods Kubernetes, utilizando o [k3s](https://k3s.io/) da [CNCF](https://www.cncf.io/projects/k3s/) para criação do cluster K8S, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
 
 ## 1. Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do Microk8s no host, que chamaremos de `Node 1`.
@@ -154,12 +154,16 @@ Aplicar as configurações criadas:
 ```shell
 # Aplicar a configuração de PVC (hello-world-pvc)
 kubectl apply -f pvc.yaml
+
 # Aplicar a configuração de Deployment (hello-world-deployment)
 kubectl apply -f deployment.yaml
+
 # Aplicar a configuração de Service (hello-world-service)
 kubectl apply -f service.yaml
+
 # Aplicar a configuração de Ingress (hello-world-ingress)
 kubectl apply -f ingress.yaml
+
 # Para aplicar todos os arquivos .yaml da pasta corrente, utilizar o seginte comando:
 kubectl apply -f .
 ```
@@ -168,23 +172,33 @@ Para listar as configurações aplicadas:
 ```shell
 # Listar os recursos PVC criados
 kubectl get pvc
+
 # Listar os recursos PV criados
 kubectl get pv
+
 # Listar os recursos Deployment criados
 kubectl get deployment
+
 # Listar os recursos Service criados
 kubectl get service
+
 # Listar os recursos Ingress criados
 kubectl get ingress
+
 # Listar os pods criados
 kubectl get pods
+
 # Para maiores detalhes em cada comando `kubectl get` executado acima, adicionar o parâmetro `-o wide`. Exemplo:
 kubectl get deployment -o wide
+
 # Para acompanhar a subida das 3 réplicas de pod especificadas no deployment, adicionar o parâmetro `-w`
 kubectl get deployment -o wide -w
 # Quando a coluna `Ready` mostrar `3/3` para o deployment hello-world-deployment, pressionar Ctrl+C para interromper o comando
-# Caso ocorra algum erro ao tentar criar um recurso, podemos utilizar o comando `kubectl describe` para verificar eventuais eventos de erro gerados para o recurso:
+
+# Caso ocorra algum erro ao tentar criar um recurso, podemos utilizar
+# o comando `kubectl describe` para verificar eventuais eventos de erro gerados para o recurso:
 kubectl describe pods
+
 # Podemos realizar o describe de um pod específico (trocar para o nome do pod que desejar):
 kubectl describe pods hello-world-deployment-7c56c6f587-bl2xf
 ```
@@ -214,7 +228,7 @@ echo "Arquivo de teste de dentro do container" > no-container.txt
 exit
 ```
 
-Em `Traffic Port Accessor`, acessar porta 80 e verificar se o arquivo criado é listado na página.
+Em `Traffic Port Accessor`, acessar porta 80, adicionando o endpoint `/files` na URL direcionada (exemplo: `https://a3eef979-0f8e-4575-b372-af4adb7cb0d5-10-244-4-8-80.saci.r.killercoda.com/files`) e verificar se o arquivo criado é listado na página.
 
 ### No Node 1
 Vamos obter os detalhes do volume criado através da configuração PVC.
