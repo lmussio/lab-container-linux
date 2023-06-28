@@ -4,8 +4,7 @@ metadata:
   name: hello-world-ingress
 spec:
   rules:
-  - host: hello-world-192-168-56-102.nip.io
-    http:
+  - http:
       paths:
       - path: /
         pathType: Prefix
