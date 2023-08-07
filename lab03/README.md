@@ -1,4 +1,4 @@
-# Lab03 - Criação de containers Docker
+# Lab02 - Criação de containers Docker
 > [Voltar](../README.md)
 
 Nesse laboratório, vamos criar um container Docker, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
