@@ -1,4 +1,4 @@
-# Lab02 - Criação de um container Linux
+# Lab01 - Criação de um container Linux
 > [Voltar](../README.md)
 
 Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
