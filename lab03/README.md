@@ -15,6 +15,22 @@ cd /home/ubuntu
 sudo snap install docker
 ```
 
+---
+
+:grey_exclamation: Atenção! Caso apareça o erro `error: cannot install "docker"`:
+```shell
+error: cannot install "docker": snap "docker" assumes unsupported features: snapd2.59.1 (try to refresh snapd)
+```
+
+Deletar configurações antigas do serviço Docker e realizar um snap refresh:
+```shell
+sudo rm -rf /etc/docker 
+sudo snap refresh
+sudo snap install docker
+```
+
+---
+
 Para utilizarmos o docker sem usuário root, precisamos adicionar o grupo docker ao usuário ubuntu:
 ```shell
 # Adicionar o grupo docker no sistema (caso apareça uma mensagem que indique
@@ -25,6 +41,21 @@ sudo adduser $USER docker
 # Logar utilizando o novo grupo
 newgrp docker
 ```
+
+---
+
+:grey_exclamation: Atenção! Caso apareça `permission denied` ao tentar utilizar o comando `docker`:
+```shell
+Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/json": dial unix /var/run/docker.sock: connect: permission denied
+```
+
+Restartar o serviço Docker gerido pelo snap:
+```shell
+sudo snap disable docker
+sudo snap enable docker
+```
+
+---
 
 Baixar a imagem do Linux Alpine que utilizaremos para criação do nosso RootFS:
 ```shell
