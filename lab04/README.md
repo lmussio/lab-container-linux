@@ -4,7 +4,7 @@
 Nesse laboratório, iremos criar pods Kubernetes, utilizando o [k3s](https://k3s.io/) da [CNCF](https://www.cncf.io/projects/k3s/) para criação do cluster K8S, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
 
 ## 1. Preparação do ambiente para laboratório
-Para esse laboratório, precisaremos realizar a instalação do Microk8s no host, que chamaremos de `Node 1`.
+Para esse laboratório, precisaremos realizar a instalação do K3S no host, que chamaremos de `Node 1`.
 ```shell
 # Acessar usuário root
 sudo su
