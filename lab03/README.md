@@ -135,6 +135,13 @@ exit
 
 ### 2.3. Terminal 1 (`Tab 2`)
 Voltar no terminal 1, e interromper a execução do container, clicando no terminal e pressionando `Ctrl+C`.
+
+---
+
+:grey_exclamation: Atenção! Caso o container não pare após o `Ctrl+C`, ou seja, se o container continuar aparecendo após o comando `docker ps`, executar o comando `docker kill hello-world`.
+
+---
+
 ```shell
 # Criar um container em background com o parâmetro `-d`
 docker run -it -d -p 8888:8080 --name hello-world containertools/hello-world
