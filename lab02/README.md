@@ -62,11 +62,11 @@ Baixar a imagem do Linux Alpine que utilizaremos para criação do nosso RootFS:
 docker pull alpine
 ```
 
-Acessar a pasta home do usuário e criar a pasta lab03:
+Acessar a pasta home do usuário e criar a pasta lab02:
 ```shell
 cd
-mkdir lab03
-cd lab03
+mkdir lab02
+cd lab02
 ```
 
 ## 2. Docker CLI
@@ -77,8 +77,8 @@ Abrir um novo terminal e executar os comandos a seguir.
 ```shell
 # Logar com usuário ubuntu
 su ubuntu
-# Entrar no diretório do lab03
-cd /home/ubuntu/lab03
+# Entrar no diretório do lab02
+cd /home/ubuntu/lab02
 # Listar os comandos disponíveis no docker
 docker --help
 # Listar os containers em execução
@@ -116,8 +116,8 @@ Abrir um segundo terminal e executar os comandos a seguir.
 ```shell
 # Logar com usuário ubuntu
 su ubuntu
-# Entrar no diretório do lab03
-cd /home/ubuntu/lab03
+# Entrar no diretório do lab02
+cd /home/ubuntu/lab02
 # Listar os containers em execução
 docker ps
 # Entrar no container hello-world
@@ -256,8 +256,8 @@ docker image prune -a
 Criaremos uma imagem de container de um servidor de arquivo, utilizando Dockerfile. Para isso, no host (`Tab 1`), utilizaremos o comando `nano Dockerfile`, para editar o arquivo `Dockerfile` conforme indicado no decorrer do laboratório.
 
 ```shell
-# Entrar no diretório do lab03
-cd /home/ubuntu/lab03
+# Entrar no diretório do lab02
+cd /home/ubuntu/lab02
 # Baixar a image alpine
 docker pull alpine
 # Editar o arquivo Dockerfile
@@ -476,11 +476,11 @@ echo "Arquivo que jogaremos no volume via cp" > cp.txt
 
 # Listar os containers
 docker-compose ps
-# Obter o nome do container, através da coluna `Name`. Utilizaremo de exemplo o nome do container `lab03_file-server_1`. Utilizar o nome que aparecer para você.
+# Obter o nome do container, através da coluna `Name`. Utilizaremo de exemplo o nome do container `lab02_file-server_1`. Utilizar o nome que aparecer para você.
 
 # Copiar o arquivo `cp.txt` para o caminho `/files/vol-host/cp.txt` dentro do service `file-server`
 # docker cp <caminho do arquivo dentro do host> <nome do container>:<caminho do arquivo dentro do container>
-docker cp cp.txt lab03_file-server_1:/files/vol-host/cp.txt
+docker cp cp.txt lab02_file-server_1:/files/vol-host/cp.txt
 
 # Deletar o arquivo `cp.txt` do host
 rm cp.txt

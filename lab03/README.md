@@ -27,11 +27,11 @@ kubectl get nodes
 
 ## 2. Kubernetes Hello-World
 ### No Node 1
-Acessar a pasta home do usuário e criar a pasta lab04:
+Acessar a pasta home do usuário e criar a pasta lab03:
 ```shell
 cd
-mkdir lab04
-cd lab04
+mkdir lab03
+cd lab03
 ```
 
 ---

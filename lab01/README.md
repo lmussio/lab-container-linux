@@ -10,7 +10,7 @@ Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Se
 ---
 
 ## Preparação do ambiente para laboratório
-Para esse laboratório, precisaremos realizar a instalação do Docker no Ubuntu 20.04, caso não esteja instalado:
+`OPCIONAL` Para esse laboratório, precisaremos realizar a instalação do Docker no Ubuntu 20.04, caso não esteja instalado:
 ```shell
 # Utilizaremos o gerenciador de pacotes snap para instalar o Docker
 sudo snap install docker
@@ -39,11 +39,11 @@ Baixar a imagem do Linux Alpine que utilizaremos para criação do nosso RootFS:
 docker pull alpine
 ```
 
-Acessar a pasta home do usuário e criar a pasta lab02:
+Acessar a pasta home do usuário e criar a pasta lab01:
 ```shell
 cd
-mkdir lab02
-cd lab02
+mkdir lab01
+cd lab01
 ```
 
 ## OverlayFS
@@ -54,7 +54,7 @@ Criaremos a estrutura de diretórios do OverlayFS dentro da pasta `fs`, populand
 mkdir -p fs/{lower,upper,work,merged}
 # Exportar a imagem alpine para o diretório fs/lower
 docker export $(docker create alpine) | tar -C fs/lower -xf -
-# Montar o OverlayFS (Irá aparecer algo como "mount: none mounted on /root/lab02/fs/merged", 
+# Montar o OverlayFS (Irá aparecer algo como "mount: none mounted on /root/lab01/fs/merged", 
 # significando que a montagem foi realizada com sucesso. 
 # O `none` significa que não existe uma partição física correspondente para a montagem, já que
 # estamos realizando a montagem a partir dos diretórios do OverlayFS.)
@@ -79,12 +79,12 @@ Agora criaremos um volume para montarmos no nosso container, permitindo persisti
 # Criar a pasta volume, para persistencia dos dados do container
 mkdir volume 
 # Criar um arquivo de teste, com o conteúdo `Meu arquivo de teste`
-echo "Meu arquivo de teste" > volume/lab02.txt
+echo "Meu arquivo de teste" > volume/lab01.txt
 # Criar uma pasta volume dentro do diretório fs/merged para realizarmos 
 # a montagem da pasta volume do host dentro do container
 mkdir ./fs/merged/volume
 # Montar o volume no container. 
-# Aparecerá algo como: "mount: /root/lab02/volume bound on /root/lab02/fs/merged/volume."
+# Aparecerá algo como: "mount: /root/lab01/volume bound on /root/lab01/fs/merged/volume."
 mount -v --bind -o ro ./volume ./fs/merged/volume
 # Entrar no container
 chroot fs/merged /bin/sh
@@ -99,7 +99,7 @@ cd /volume
 # arquivo de teste, pois ao realizarmos a montagem do volume, 
 # utilizamos o parâmetro `-o ro`, que indica que o volume é somente leitura. 
 # Vamos sair do container e montar novamente o volume, com permissão de escrita.
-echo "Um olá de dentro do container!" >> lab02.txt
+echo "Um olá de dentro do container!" >> lab01.txt
 exit
 ```
 ### No host
@@ -117,14 +117,14 @@ chroot fs/merged /bin/sh
 cd /volume
 # Adicionar a frase `Um olá de dentro do container!` no final 
 # do arquivo de teste
-echo "Um olá de dentro do container!" >> lab02.txt
+echo "Um olá de dentro do container!" >> lab01.txt
 # Sair do container
 exit
 ```
 ### No host
 ```shell
 # Obter o conteúdo do arquivo de teste
-cat ./volume/lab02.txt
+cat ./volume/lab01.txt
 # Observe que o conteúdo do arquivo contém as alterações que 
 # realizamos dentro do container
 ```
@@ -310,16 +310,16 @@ sudo nano /etc/sysctl.conf
 Agora limitaremos a criação de processos no container, através da configuração do cgroup.
 ### No host
 ```shell
-# Criar um diretório cnt/lab02 no cgroup pids. O diretório /sys/fs/cgroup é um diretório de arquivos que contém 
+# Criar um diretório cnt/lab01 no cgroup pids. O diretório /sys/fs/cgroup é um diretório de arquivos que contém 
 # os grupos de controle para os processos Linux. Quando criamos uma nova pasta dentro de /sys/fs/cgroup/<cgroup>, 
 # o Kernel Linux cria um grupo de controle dedicado, onde podemos especificar os processos que serão geridos por ele.
 mount -t tmpfs cgroup_root /sys/fs/cgroup
 mkdir -p /sys/fs/cgroup/pids
 mount -t cgroup -o pids none /sys/fs/cgroup/pids
-mkdir -p /sys/fs/cgroup/pids/cnt/lab02
+mkdir -p /sys/fs/cgroup/pids/cnt/lab01
 
 # Limitar a quantidade de processos que podem ser criados dentro do container em 3
-echo 3 > /sys/fs/cgroup/pids/cnt/lab02/pids.max
+echo 3 > /sys/fs/cgroup/pids/cnt/lab01/pids.max
 ```
 
 ---
@@ -339,7 +339,7 @@ Em em segundo terminal, realizar os seguintes comandos:
 # Trocar para o usuário root
 sudo su
 # Acessar a pasta do container no host
-cd && cd lab02
+cd && cd lab01
 # Entrar no container, através do shell (/bin/sh) com o parâmetro `-v`
 ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh -v
 ```
@@ -350,7 +350,7 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 # Nesse caso, serão os dois shells que estão rodando dentro do container.
 CNT_PID=$(lsns -t pid | grep "sh -v" | awk '{print $4}')
 # Configurar o cgroup criado anteriormente, para controlar os processos em execução dentro do container
-for pid in $CNT_PID; do echo "$pid" > /sys/fs/cgroup/pids/cnt/lab02/cgroup.procs; done
+for pid in $CNT_PID; do echo "$pid" > /sys/fs/cgroup/pids/cnt/lab01/cgroup.procs; done
 ```
 
 ### Terminal 1 (`Tab 2`)
@@ -369,7 +369,7 @@ sleep 30 &
 ### No host (`Tab 1`)
 ```shell
 # Remover o limite imposto anteriormente
-echo max > /sys/fs/cgroup/pids/cnt/lab02/pids.max
+echo max > /sys/fs/cgroup/pids/cnt/lab01/pids.max
 ```
 
 ### Terminal 1 (`Tab 2`)
@@ -401,7 +401,7 @@ ip link del meu-switch
 ip netns del cnt
 # Encerrar todos os terminais dentro de container (Tab 2, Tab 3, etc.), utilizando o comando `exit`
 # Remover cgroups criados
-$(cd /sys/fs/cgroup/pids && rmdir -p cnt/lab02)
+$(cd /sys/fs/cgroup/pids && rmdir -p cnt/lab01)
 ```
 
 
@@ -416,8 +416,8 @@ su - $USER
 # Acesso ao diretório do laboratório
 sudo su
 cd
-mkdir lab02
-cd lab02
+mkdir lab01
+cd lab01
 mkdir -p fs/{lower,upper,work,merged}
 docker export $(docker create alpine) | tar -C fs/lower -xf -
 # OverlayFS
