@@ -1,458 +1,494 @@
-# Lab01 - Criação de um container Linux
+# Lab02 - Criação de containers Docker
 > [Voltar](../README.md)
 
-Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
+Nesse laboratório, vamos criar um container Docker, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
 
----
-
-:grey_exclamation: Para copiar um texto no terminal do Killercoda, basca selecionar o texto desejado utilizando o mouse, que automaticamente será copiado. Para colar um texto no terminal do Killercoda, clicar com botão direito do mouse e selecionar opção `Colar`, ou então pressionar as teclas `Ctrl + Shift + V`.
-
----
-
-## Preparação do ambiente para laboratório
+## 1. Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do Docker no Ubuntu 20.04, caso não esteja instalado:
 ```shell
+# Logar no usuário `ubuntu`
+su ubuntu
+# Caso pedir senha, utilizar a senha `ubuntu`
+# Entrar no diretório home do usuário ubuntu
+cd /home/ubuntu
 # Utilizaremos o gerenciador de pacotes snap para instalar o Docker
 sudo snap install docker
 ```
 
-`OPCIONAL` Para utilizarmos o docker sem usuário root, precisamos adicionar o grupo docker ao usuário atual utilizado:
+---
+
+:grey_exclamation: Atenção! Caso apareça o erro `error: cannot install "docker"`:
 ```shell
-# Criaremos um grupo docker caso não exista
-sudo groupadd docker
-# Adicionaremos o usuário ubuntu ao grupo docker
-sudo usermod -aG docker $USER
-# Abrir nova sessão de usuário para carregar o grupo
-su - $USER
-# Verificar se nosso usuário está contido no grupo docker
-id
-# Deve aparecer algo do tipo: uid=0(root) gid=0(root) groups=0(root),120(docker)
+error: cannot install "docker": snap "docker" assumes unsupported features: snapd2.59.1 (try to refresh snapd)
 ```
 
-Trocar para o usuário root:
+Deletar configurações antigas do serviço Docker e realizar um snap refresh:
 ```shell
-sudo su
+sudo rm -rf /etc/docker 
+sudo snap refresh
+sudo snap install docker
 ```
+
+---
+
+Para utilizarmos o docker sem usuário root, precisamos adicionar o grupo docker ao usuário ubuntu:
+```shell
+# Adicionar o grupo docker no sistema (caso apareça uma mensagem que indique
+# que o grupo docker já existe, mesmo assim continuar com as configurações a seguir)
+sudo addgroup --system docker
+# Adiciona o usuário ubuntu no grupo docker
+sudo adduser $USER docker
+# Logar utilizando o novo grupo
+newgrp docker
+```
+
+---
+
+:grey_exclamation: Atenção! Caso apareça `permission denied` ao tentar utilizar o comando `docker`:
+```shell
+Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/json": dial unix /var/run/docker.sock: connect: permission denied
+```
+
+Restartar o serviço Docker gerido pelo snap:
+```shell
+sudo snap disable docker
+sudo snap enable docker
+```
+
+---
 
 Baixar a imagem do Linux Alpine que utilizaremos para criação do nosso RootFS:
 ```shell
 docker pull alpine
 ```
 
-Acessar a pasta home do usuário e criar a pasta lab02:
+Acessar a pasta home do usuário e criar a pasta lab03:
 ```shell
 cd
-mkdir lab02
-cd lab02
+mkdir lab03
+cd lab03
 ```
 
-## OverlayFS
-Criaremos a estrutura de diretórios do OverlayFS dentro da pasta `fs`, populando com o RootFS Alpine, e montando o OverlayFS no diretório `fs/merged`, para iniciarmos a criação do nosso container. Quando mencionar `No host`, deveremos executar os comandos na máquina host, enquanto `No container` deveremos executar os comandos dentro do container (utilizando `chroot`).
-### No host
+## 2. Docker CLI
+Criaremos um container Docker utilizando o comando `docker`.
+
+### 2.1. Terminal 1 (`Tab 2`)
+Abrir um novo terminal e executar os comandos a seguir.
 ```shell
-# Criar a estrutura de diretórios do OverlayFS
-mkdir -p fs/{lower,upper,work,merged}
-# Exportar a imagem alpine para o diretório fs/lower
-docker export $(docker create alpine) | tar -C fs/lower -xf -
-# Montar o OverlayFS (Irá aparecer algo como "mount: none mounted on /root/lab02/fs/merged", 
-# significando que a montagem foi realizada com sucesso. 
-# O `none` significa que não existe uma partição física correspondente para a montagem, já que
-# estamos realizando a montagem a partir dos diretórios do OverlayFS.)
-mount -vt overlay -o lowerdir=./fs/lower,upperdir=./fs/upper,workdir=./fs/work none ./fs/merged
-# Verificar o sistema operacional atual (Ubuntu)
-cat /etc/os-release
-# Entrar no sistema operacional virtual
-chroot fs/merged /bin/sh
+# Logar com usuário ubuntu
+su ubuntu
+# Entrar no diretório do lab03
+cd /home/ubuntu/lab03
+# Listar os comandos disponíveis no docker
+docker --help
+# Listar os containers em execução
+docker ps
+# Baixar a imagem containertools/hello-world do Docker Hub (https://hub.docker.com/r/containertools/hello-world)
+docker pull containertools/hello-world
+# Listar as imagens baixadas
+docker images
+# Criar um container a partir da imagem containertools/hello-world
+docker run -it -p 8888:8080 --name hello-world containertools/hello-world
+# `-it`: Executar o container em modo interativo
+# `-p 8888:8080`: Expor a porta 8080 do container na porta de rede 8888 do host
+# `--name hello-world`: Nomear o container de hello-world
+# `containertools/hello-world`: Imagem a partir da qual o container será criado
 ```
-### No container
+
+Clicar no botão menu localizado no canto direito superior da tela, e selecionar a opção `Traffic / Ports`:
+
+![image](https://github.com/lmussio/lab-container-linux/assets/7672988/74ae258d-bac3-4f7f-91ce-3ce08061cd83)
+
+Na nova tela aberta, adicionar em `Custom Ports` a porta 8888 do host que desejamos acessar, e pressionar botão `Access`:
+
+![image](https://github.com/lmussio/lab-container-linux/assets/7672988/946bd5cc-f01b-4ad9-826e-d0282e805834)
+
+Uma nova aba será aberta, apresentando a tela HTML do serviço rodando na porta 8888 do host, contendo alguns detalhes do container.
+
+---
+
+:grey_exclamation: Atenção! Caso demore muito para carregar a página de acesso à porta selecionada (> 1 min), recomendo resetar o ambiente Killercoda.
+
+---
+
+### 2.2. Terminal 2 (`Tab 3`)
+Abrir um segundo terminal e executar os comandos a seguir.
 ```shell
-# Verificar o sistema operacional atual (Alpine)
+# Logar com usuário ubuntu
+su ubuntu
+# Entrar no diretório do lab03
+cd /home/ubuntu/lab03
+# Listar os containers em execução
+docker ps
+# Entrar no container hello-world
+docker exec -it hello-world sh
+# Recarregue a página http://192.168.56.102:8888 e observe que a contagem de PIDs aumentou.
+# Listar os arquivos dentro do container
+ls -la
+# Verificar o sistema operacional atual (Alpine) 
 cat /etc/os-release
+# Verificar o código fonte da página HTML que acessamos no navegador
+cat templates/index.html
 # Sair do container
 exit
 ```
 
-## Volume
-Agora criaremos um volume para montarmos no nosso container, permitindo persistir os dados do container em uma pasta local do host.
-### No host
+### 2.3. Terminal 1 (`Tab 2`)
+Voltar no terminal 1, e interromper a execução do container, clicando no terminal e pressionando `Ctrl+C`.
+
+---
+
+:grey_exclamation: Atenção! Caso o container não pare após o `Ctrl+C`, ou seja, se o container continuar aparecendo após o comando `docker ps`, executar o comando `docker kill hello-world`.
+
+---
+
 ```shell
-# Criar a pasta volume, para persistencia dos dados do container
-mkdir volume 
-# Criar um arquivo de teste, com o conteúdo `Meu arquivo de teste`
-echo "Meu arquivo de teste" > volume/lab02.txt
-# Criar uma pasta volume dentro do diretório fs/merged para realizarmos 
-# a montagem da pasta volume do host dentro do container
-mkdir ./fs/merged/volume
-# Montar o volume no container. 
-# Aparecerá algo como: "mount: /root/lab02/volume bound on /root/lab02/fs/merged/volume."
-mount -v --bind -o ro ./volume ./fs/merged/volume
-# Entrar no container
-chroot fs/merged /bin/sh
-```
-### No container
-```shell
-# Entrar na pasta /volume
-cd /volume
-# Tentar adicionar no final do arquivo de teste criado anteriormente, 
-# a frase `Um olá de dentro do container!`
-# Após executar o comando abaixo, observe que não foi possível alterar o 
-# arquivo de teste, pois ao realizarmos a montagem do volume, 
-# utilizamos o parâmetro `-o ro`, que indica que o volume é somente leitura. 
-# Vamos sair do container e montar novamente o volume, com permissão de escrita.
-echo "Um olá de dentro do container!" >> lab02.txt
-exit
-```
-### No host
-```shell
-# Desmontar o volume do container
-umount ./fs/merged/volume
-# Montar o volume no container, com permissão de leitura e escrita
-mount -v --bind -o rw ./volume ./fs/merged/volume
-# Entrar no container
-chroot fs/merged /bin/sh
-```
-### No container
-```shell
-# Entrar na pasta /volume
-cd /volume
-# Adicionar a frase `Um olá de dentro do container!` no final 
-# do arquivo de teste
-echo "Um olá de dentro do container!" >> lab02.txt
+# Criar um container em background com o parâmetro `-d`
+docker run -it -d -p 8888:8080 --name hello-world containertools/hello-world
+# Observe que ocorreu um erro, indicando o nome `hello-world` já está em uso por outro container. Para isso, precisaremos deletar o container anterior que criamos
+
+# Listar os containers em execução
+docker ps
+# Observe que o container anteriormente criado não aparece. Isso ocorre devido ao comando docker ps mostrar apenas os containers em execução.
+
+# Para listarmos todos os containers criados, independente se estão em execução ou não, iremos utilizar o parâmetro `-a`
+docker ps -a
+
+# Deletar o container hello-world. 
+# Opcionalmente podemos especificar o ID do container obtido no `docker ps`, ao invés de seu nome, em qualquer comando que precisarmos mencionar um container.
+docker rm hello-world
+
+# Criar um container em background
+docker run -itd -p 8888:8080 --name hello-world containertools/hello-world
+
+# Listar o container criado
+docker ps
+
+# Obter os logs do container
+docker logs hello-world
+
+# Parar o container hello-world
+docker stop hello-world
+
+# Listar todos os containers
+docker ps -a
+# Observe o status do container hello-world, indicando que foi finalizado (Exited...).
+
+# Startar o container hello-world
+docker start hello-world 
+
+# Listar todos os containers
+docker ps -a
+# Observe o status do container hello-world, indicando que está em operação (Up...)
+
+# Caso o container não pare utilizando o comando `docker stop`, podemos forçar sua interrupção, utilizando o comando `docker kill`.
+docker kill hello-world
+
+# Listar todos os containers
+docker ps -a
+# Observe o status do container hello-world, indicando que foi finalizado (Exited...)
+
+# Startar o container hello-world
+docker start hello-world
+
+# Listar todos os containers
+docker ps -a
+# Observe o tempo indicado no status UP
+
+# Restartar o container hello-world
+docker restart hello-world
+
+# Listar todos os containers
+docker ps -a
+# Observe o tempo indicado no status UP
+
+# Verificar o consumo de recursos do container
+docker stats hello-world
+# Recarregue a página da aba aberta na porta 8888 (exemplo: https://dd457848-912e-4902-9173-2933c4c45f46-10-244-4-206-8888.saci.r.killercoda.com/)
+# e observe o consumo dos recursos mudarem comparando com o que está sendo apresentado no `Terminal 1`.
+# Pressione `Ctrl+C` para interromper o comando `docker stats`.
+
+# Obter os eventos Docker gerados na última hora
+docker events --since=1h
+# Observe que foram registrados os eventos das operações de start, stop, kill, entre outros. Pressione `Ctrl+C` para interromper o comando.
+
+# Conectar na entrada e saída padrão do container hello-world
+docker attach hello-world
+# Recarregue a página da aba aberta na porta 8888 e volte para o `Terminal 1`. Observe que o log de acesso ao container que conectamos, aparece no terminal. Isso ocorre devido a estarmos conectados à saída padrão do container.
+# Pressione Ctrl+C e observe que interrompemos a execução do serviço dentro do container. Isso ocorre devido a estarmos conectados à entrada padrão do container, que ao pressionarmos Ctrl+C, enviamos um sinal de interrupção (SIGINT) para o serviço em execução.
+
+# Listar todos os containers
+docker ps -a
+
+# Startar o container hello-world
+docker start hello-world
+
+# Entrar no container hello-world
+docker exec -it hello-world sh
+
+# Criar um arquivo de teste
+echo "Isso é um teste" > /tmp/teste.txt
+
 # Sair do container
 exit
-```
-### No host
-```shell
-# Obter o conteúdo do arquivo de teste
-cat ./volume/lab02.txt
-# Observe que o conteúdo do arquivo contém as alterações que 
-# realizamos dentro do container
+
+# Visualizar as alterações realizadas no container a partir da imagem base
+docker diff hello-world
+
+# Obter os detalhes do container hello-world. Nesses detalhes são mostrados pontos de montagem,
+# informações de rede, overlayfs, variáveis de ambiente, estado do container, etc.
+docker inspect hello-world
+
+# Parar todos os containers em execução 
+docker stop $(docker ps -a -q)
+
+# Remover todos os containers
+docker container prune
+
+# Pressione y seguido de Enter para remover todos os containers
+# Remover todas as imagens não utilizadas
+docker image prune -a
+# Pressione y seguido de Enter para remover todas as imagens não utilizadas
+# De maneira alternativa, podemos remover imagens utilizando o comando `docker rmi <imagem>`. Exemplo: `docker rmi containertools/hello-world`
 ```
 
-## Namespace
-Agora criaremos um namespace para o container, permitindo que o container seja executado em um ambiente isolado.
-### No host
+## 3. Dockerfile
+Criaremos uma imagem de container de um servidor de arquivo, utilizando Dockerfile. Para isso, no host (`Tab 1`), utilizaremos o comando `nano Dockerfile`, para editar o arquivo `Dockerfile` conforme indicado no decorrer do laboratório.
+
 ```shell
-# Verificar qual o ID do processo atual (PID) no shell que estamos
-echo $$
-# Listar os processos que enxergamos no host
-ps aux
-# Entrar no container
-chroot fs/merged /bin/sh
-```
-### No container
-```shell
-# Montar o diretório /proc para que possamos listar os processos 
-# de dentro do container
-mount -vt proc proc /proc
-# Verificar qual o ID do processo atual (PID) no shell que estamos 
-# dentro do container
-echo $$
-# Listar os processos que enxergamos no container
-ps aux
-# Observe que não existe isolamento de processos, pois o container não está 
-# em um ambiente isolado. Para isso, vamos sair do container e criar um 
-# isolamento para nosso container, através de namespaces.
-exit
+# Entrar no diretório do lab03
+cd /home/ubuntu/lab03
+# Baixar a image alpine
+docker pull alpine
+# Editar o arquivo Dockerfile
+nano Dockerfile
 ```
 
-### No host
-```shell
-# Criar um namespace para o container, utilizando o comando unshare, 
-# isolando pontos de montagem (--mount) e processos (--pid),
-# realizando a montagem do sistema de arquivos proc criado dentro do 
-# container (fs/merged/proc). Com o parâmetro --fork criamos
-# uma novo processo, que será o responsável por executar o container 
-# utilizando o comando chroot.
-unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
-```
-### No container
-```shell
-# Verificar qual o ID do processo atual (PID) no shell que estamos dentro 
-# do container
-echo $$
-# Listar os processos que enxergamos no container
-ps aux
-# Observe que o isolamento funcionou, não sendo mais possível enxergar os 
-# processos do host
-exit
+Alterar o arquivo Dockerfile:
+```Dockerfile
+FROM alpine
+
+RUN apk add python3
+
+CMD ["python3", "-m", "http.server"]
 ```
 
-## Network
-Agora isolaremos a camada de rede do container, fazendo com que o container acesse outras redes através da rede virtual que criaremos dedicada ao container.
-```shell
-# Entrar no container
-unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
-```
-### No container
-```shell
-# Verificar as interfaces de rede disponíveis ao container
-ip link
-# Observe que conseguimos acessar as interfaces de rede disponíveis no host, 
-# dado que não isolamos a camada de network
-exit
-```
-
-### No host
-#### Criação do switch virtual
-Criaremos um switch virtual (Linux Bridge), para prover conectividade ao nosso container.
-```shell
-# Criar o namespace de rede `cnt` para nosso container
-ip netns add cnt
-# Criar o switch virtual `meu-switch`
-ip link add meu-switch type bridge
-# Adicionar o IP 10.123.231.1 para o switch virtual
-ip addr add 10.123.231.1/24 brd + dev meu-switch
-# Ligar o switch virtual
-ip link set meu-switch up
-```
-#### Criação das interfaces de rede virtuais
-```shell
-# Criar a interface de rede virtual `veth-cnt` do container, conectado à 
-# interface de rede virtual `meu-sw-veth-1` do switch virtual
-ip link add veth-cnt type veth peer name meu-sw-veth-1
-# Adicionar a interface de rede virtual `veth-cnt` ao namespace de rede `cnt`, 
-# para que nosso container isolado possa acessar essa interface
-ip link set veth-cnt netns cnt
-# Adicionar a interface de rede virtual `meu-sw-veth-1` ao switch virtual
-ip link set meu-sw-veth-1 master meu-switch
-# Ligar a interface de rede `meu-sw-veth-1`
-ip link set meu-sw-veth-1 up
-# Adicionar o IP 10.123.231.2 para a interface de rede virtual `veth-cnt` do container
-ip -n cnt addr add 10.123.231.2/24 dev veth-cnt
-# Ligar a interface localhost do container
-ip -n cnt link set lo up
-# Ligar a interface `veth-cnt` do container
-ip -n cnt link set veth-cnt up
-# Adicionar o `meu-switch` como rota padrão para o container, 
-# permitindo o encaminhamento de pacotes de rede do container para outras redes
-ip -n cnt route add default via 10.123.231.1 dev veth-cnt
-# Configurar o SNAT (Source NAT) para pacotes provenientes da rede 10.123.231.0/24, 
-# cujo o destino sejam outras interfaces de rede distintas à bridge `meu-switch`
-# `iptables -t nat -I POSTROUTING 1`: Cria uma regra de SNAT momento antes de realizar o roteamento. 
-# Adiciona essa regra na posição 1 da tabela nat.
-# `-s 10.123.231.0/24`: A regra é aplicada apenas para pacotes cujo a origem seja um IP da subnet 10.123.231.0/24.
-# `! -o meu-switch`: A regra é aplicada apenas para pacotes cujo a interface de saída não seja `meu-switch`.
-iptables -t nat -I POSTROUTING 1 -s 10.123.231.0/24 ! -o meu-switch -j MASQUERADE
-# Configurar a filtragem de pacotes, permitindo que pacotes que chegam da interface bridge `meu-switch`, 
-# sejam encaminhados para outras interfaces diferentes da `meu-switch`
-iptables -I FORWARD -i meu-switch ! -o meu-switch -j ACCEPT
-# Configurar a filtragem de pacotes, permitindo que pacotes que chegam da interface bridge `meu-switch`, 
-# sejam encaminhados para a própria interface `meu-switch`
-iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT
-# Configurar a filtragem de pacotes, permitindo que outras máquinas troquem pacotes de redes em 
-# conexões estabelecidas com a rede 10.123.231.0/24
-iptables -I FORWARD -o meu-switch -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-```
-
-#### Montar arquivo de configuração DNS para o container
-```shell
-# Criar um diretório para armazenar o arquivo de configuração DNS
-mkdir -p netns/cnt
-# Criar o arquivo de configuração DNS para o container
-echo nameserver 8.8.8.8 > netns/cnt/resolv.conf
-# Montar o arquivo de configuração do Host para o container
-mount --bind ./netns/cnt/resolv.conf ./fs/merged/etc/resolv.conf
-# Desabilitar o roteamento via Kernel Linux
-sysctl -w net.ipv4.ip_forward=0
-# Entrar no container, aplicando o namespace de rede `cnt` ao container
-ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
-```
-### No container
-```shell
-# Verificar as interfaces de rede disponíveis ao container
-ip link
-# Observe que não conseguimos mais visualizar as interfaces de rede do hosts, 
-# apenas as interfaces de rede configuradas no namespace
-# Verificar o acesso do container ao IP 1.1.1.1, através do comando `ping`
-ping 1.1.1.1
-# Observe que não conseguimos acessar o IP 1.1.1.1, ou seja, não recebemos resposta dessa máquina 1.1.1.1. 
-# Para interromper o ping, pressionar `Ctrl+C`, finalizando o comando ping em execução. 
-# Isso ocorre por conta de termos desabilitado o roteamento de pacotes de rede através do Kernel Linux
-exit
-```
-### No host
-```shell
-# Habilitar o roteamento via Kernel Linux
-sysctl -w net.ipv4.ip_forward=1
-# Entrar no container
-ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
-```
-### No container
-```shell
-# Verificar o acesso do container ao IP 1.1.1.1, através do comando `ping`. Para interromper o ping, pressionar `Ctrl+C`.
-ping 1.1.1.1
-# Verificar o acesso do container ao www.google.com, através do comando `ping`. Para interromper o ping, pressionar `Ctrl+C`.
-ping www.google.com
-# Observe que conseguimos acessar o IP 1.1.1.1 e o domínio www.google.com
-exit
-```
-
-### No host
-#### Para persistir a configuração net.ipv4.ip_forward
-```shell
-# Salvar a configuração net.ipv4.ip_forward no arquivo /etc/sysctl.conf
-sudo nano /etc/sysctl.conf
-```
-- Navegue no arquivo utilizando as setas do teclado
-- Adicione no final do arquivo a seguinte linha: `net.ipv4.ip_forward=1`
+Após alterar o arquivo `Dockerfile`, para salvar, seguir a seguinte sequência de comandos:
 - Pressione Ctrl+X
 - Pressione Y
 - Pressione Enter
+  
+A instrução `FROM alpine` indica que nossa imagem será construída a partir da imagem [alpine](https://hub.docker.com/_/alpine). A instrução `RUN apk add python3` indica para rodar o comando `apk add python3`, que realiza a instalação do Python 3 na imagem do container. A instrução `CMD ["python3", "-m", "http.server"]` indica que o container será iniciado com o comando `python3 -m http.server` quando for criado.
 
----
-
-:grey_exclamation: Para usuários mais avançados, podem utilizar o editor de texto `vim`.
-
----
-
-## Cgroup
-Agora limitaremos a criação de processos no container, através da configuração do cgroup.
-### No host
+Executar os comandos a seguir:
 ```shell
-# Criar um diretório cnt/lab02 no cgroup pids. O diretório /sys/fs/cgroup é um diretório de arquivos que contém 
-# os grupos de controle para os processos Linux. Quando criamos uma nova pasta dentro de /sys/fs/cgroup/<cgroup>, 
-# o Kernel Linux cria um grupo de controle dedicado, onde podemos especificar os processos que serão geridos por ele.
-mount -t tmpfs cgroup_root /sys/fs/cgroup
-mkdir -p /sys/fs/cgroup/pids
-mount -t cgroup -o pids none /sys/fs/cgroup/pids
-mkdir -p /sys/fs/cgroup/pids/cnt/lab02
+# Contruir a imagem do container
+# `-t file-server` indica que a imagem será salva com o nome `file-server` 
+# `.` indica para construir a imagem a partir da pasta onde estamos (utilizar o comando `pwd` para verificar em qual pasta você está)
+docker build -t file-server .
 
-# Limitar a quantidade de processos que podem ser criados dentro do container em 3
-echo 3 > /sys/fs/cgroup/pids/cnt/lab02/pids.max
+# Criar um container com a imagem `file-server` que acabamos de construir.
+# `-rm` indica que o container será destruído após o final da sua execução
+docker run -it --rm -p 8000:8000 file-server
 ```
 
----
- :exclamation: A seguir criaremos alguns terminais adicionais além do terminal atual que estamos utilizando para comando no Host. Para isso, pressionar o botão `+`, conforme imagem abaixo:
+Semelhante ao passo 2.1, em `Traffic / Ports`, acessar a porta 8000. Observe que é possível visualizar todos os arquivos dentro do nosso container, porém para nosso servidor de arquivos, queremos limitar o acesso apenas a uma pasta específica do nosso container. Para isso, criaremos a pasta `/files` utilizando a instrução `WORKDIR /files` na imagem do nosso container, que ficará dedicada ao servidor de arquivos. Essa instrução realiza a criação da pasta indicada caso não exista, e entra nessa pasta, fazendo com que as instruções seguintes sejam executadas a partir dessa pasta indicada. 
 
-![image](https://github.com/lmussio/lab-container-linux/assets/7672988/96f21b44-8156-47b5-bf44-ee05f90a96ad)
-
-Por exemplo, utilizaremos a `Tab 2` criada, para o `Terminal 1`:
-
-![image](https://github.com/lmussio/lab-container-linux/assets/7672988/a06fa636-d19c-4b0c-9150-256667ebbc65)
-
----
-
-### Terminal 1 (`Tab 2`)
-Em em segundo terminal, realizar os seguintes comandos:
+Editar o arquivo Dockerfile:
 ```shell
-# Trocar para o usuário root
-sudo su
-# Acessar a pasta do container no host
-cd && cd lab02
-# Entrar no container, através do shell (/bin/sh) com o parâmetro `-v`
-ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh -v
+# Pressione Ctrl+C para interromper a execução do container
+nano Dockerfile
 ```
 
-### No host (`Tab 1`)
-```shell
-# Criar variável de ambiente `CNT_PID` contendo como o valor a lista de processos `sh` com parâmetro `-v`. 
-# Nesse caso, serão os dois shells que estão rodando dentro do container.
-CNT_PID=$(lsns -t pid | grep "sh -v" | awk '{print $4}')
-# Configurar o cgroup criado anteriormente, para controlar os processos em execução dentro do container
-for pid in $CNT_PID; do echo "$pid" > /sys/fs/cgroup/pids/cnt/lab02/cgroup.procs; done
+Alterar para:
+```Dockerfile
+FROM alpine
+
+RUN apk add python3
+
+WORKDIR /files
+
+CMD ["python3", "-m", "http.server"]
 ```
 
-### Terminal 1 (`Tab 2`)
+Executar os comandos a seguir:
 ```shell
-# Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
-sleep 30 &
-# Criar um segundo processo com comando sleep
-sleep 30 &
-# Criar um terceiro processo com comando sleep
-sleep 30 &
-# Observe que ao tentar criar um terceiro processo, o Kernel Linux não permite que o processo seja criado, 
-# dado que extrapolou o limite imposto pelo cgroup configurado. No caso temos 1 processo `sh -v` e 2 processos `sleep 30`, 
-# e estamos tentando executar o 4º processo `sleep 30`.
+# Contruir a nova imagem do container
+docker build -t file-server .
+
+# Criar um novo container com a imagem atualizada
+docker run -it --rm -p 8000:8000 file-server
 ```
 
-### No host (`Tab 1`)
+Atualizar a página de acesso na porta 8000. Observe que agora não aparecem arquivos no nosso servidor, dado que criamos uma pasta vazia na imagem do container. Agora criaremos um arquivo dentro da pasta `/files` na imagem do container:
+
+Editar o arquivo Dockerfile:
 ```shell
-# Remover o limite imposto anteriormente
-echo max > /sys/fs/cgroup/pids/cnt/lab02/pids.max
+# Pressione Ctrl+C para interromper a execução do container
+nano Dockerfile
 ```
 
-### Terminal 1 (`Tab 2`)
-```shell
-# Criar novos processos com o comando sleep, mantendo ele em execução por 30 segundos
-sleep 30 &
-sleep 30 &
-sleep 30 &
-sleep 30 &
-sleep 30 &
-# Observer que agora não existe limite na criação de processos.
+Alterar para:
+```Dockerfile
+FROM alpine
+
+RUN apk add python3
+
+WORKDIR /files
+RUN echo "Arquivo de teste" > teste.txt
+
+CMD ["python3", "-m", "http.server"]
 ```
 
-## Limpeza
-Para removermos as configurações realizadas nesse laboratório, utilizar os seguintes comandos:
+Com a instrução `RUN echo "Arquivo de teste" > teste.txt`, executamos o comando `echo "Arquivo de teste" > teste.txt`, que cria o arquivo `teste.txt` com o conteúdo `Arquivo de teste` dentro da pasta onde estamos (`/files`).
+
+Executar os comandos a seguir:
 ```shell
-# Desmontar recursivamente o diretório fs/merged. 
-# Todo e qualquer diretório montado dentro de fs/merged, será desmontado automaticamente
-umount -R ./fs/merged
-# Remover configurações iptables
-iptables -t nat -D POSTROUTING -s 10.123.231.0/24 ! -o meu-switch -j MASQUERADE
-iptables -D FORWARD -i meu-switch ! -o meu-switch -j ACCEPT
-iptables -D FORWARD -i meu-switch -o meu-switch -j ACCEPT
-iptables -D FORWARD -o meu-switch -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-# Remover interfaces de rede virtuais
-ip link del meu-sw-veth-1
-ip link del meu-switch
-# Remover namespace de rede
-ip netns del cnt
-# Encerrar todos os terminais dentro de container (Tab 2, Tab 3, etc.), utilizando o comando `exit`
-# Remover cgroups criados
-$(cd /sys/fs/cgroup/pids && rmdir -p cnt/lab02)
+# Contruir a nova imagem do container
+docker build -t file-server .
+
+# Criar um novo container com a imagem atualizada
+docker run -it --rm -p 8000:8000 file-server
 ```
 
+Atualizar a página de acesso na porta 8000. Clicar no arquivo `teste.txt`. Observe que o conteúdo do arquivo corresponde ao que indicamos no arquivo Dockerfile. 
 
-## Kit montagem
-Seguem comandos utilizados para a montagem do laboratório futuramente:
+Executar os comandos a seguir:
 ```shell
-# Setup Docker
-sudo snap install docker
-sudo groupadd docker
-sudo usermod -aG docker $USER
-su - $USER
-# Acesso ao diretório do laboratório
-sudo su
-cd
-mkdir lab02
-cd lab02
-mkdir -p fs/{lower,upper,work,merged}
-docker export $(docker create alpine) | tar -C fs/lower -xf -
-# OverlayFS
-mount -vt overlay -o lowerdir=./fs/lower,upperdir=./fs/upper,workdir=./fs/work none ./fs/merged
-# Volume
-mkdir volume 
-mkdir ./fs/merged/volume
-mount -v --bind -o rw ./volume ./fs/merged/volume
-# Namespace
-mount -vt proc proc ./fs/merged/proc
-# Network
-ip netns add cnt
-ip link add meu-switch type bridge
-ip addr add 10.123.231.1/24 brd + dev meu-switch
-ip link set meu-switch up
-ip link add veth-cnt type veth peer name meu-sw-veth-1
-ip link set veth-cnt netns cnt
-ip link set meu-sw-veth-1 master meu-switch
-ip link set meu-sw-veth-1 up
-ip -n cnt addr add 10.123.231.2/24 dev veth-cnt
-ip -n cnt link set lo up
-ip -n cnt link set veth-cnt up
-ip -n cnt route add default via 10.123.231.1 dev veth-cnt
-iptables -t nat -I POSTROUTING 1 -s 10.123.231.0/24 ! -o meu-switch -j MASQUERADE
-iptables -I FORWARD -i meu-switch ! -o meu-switch -j ACCEPT
-iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT
-iptables -I FORWARD -o meu-switch -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-mkdir -p netns/cnt
-echo nameserver 8.8.8.8 > netns/cnt/resolv.conf
-sysctl -w net.ipv4.ip_forward=1
-mount --bind ./netns/cnt/resolv.conf ./fs/merged/etc/resolv.conf
-# Acesso ao container
-ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroot fs/merged /bin/sh
+# Pressione Ctrl+C para interromper a execução do container
+# Criar pasta host
+mkdir host
+
+# Criar o arquivo host/teste-host.txt
+echo "Arquivo de teste do host" > host/teste-host.txt
+
+# Criar um novo container com a imagem atualizada
+# `-v "$PWD/host:/files/host"` indica que montaremos a pasta host que criamos,
+# na pasta /files/host dentro do container, para que possamos compartilhar arquivos do host para nosso servidor de arquivos
+docker run -it --rm -p 8000:8000 -v "$PWD/host:/files/host" file-server
 ```
 
-## Documentação de comandos shell
-Existe o site `explainshell.com` que podemos passar um comando shell através da seguinte URI: `https://explainshell.com/explain?cmd=<comando shell>`. Exemplo:
-`https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT`
+Atualizar a página de acesso na porta 8000. Clicar em `host/` e em seguida clicar em `teste-host.txt`. Observe que o conteúdo do arquivo corresponde ao que criamos a partir do host. Pressione `Ctrl+C` para interromper a execução do container.
+
+## 4. Docker Compose
+Criaremos o arquivo `docker-compose.yml` para especificarmos o serviço `file-server`, contendo toda a configuração necessária para execução do nosso servidor de arquivos.
+
+Editar o arquivo `docker-compose.yml`:
+```shell
+nano docker-compose.yaml
+```
+Inserir o seguinte conteúdo:
+```yaml
+version: '3'
+services:
+  file-server:
+    image: file-server
+    volumes:
+      - ./host:/files/host
+    ports:
+      - 8000:8000
+```
+
+A opção `version: '3'` indica que utilizaremos a versão 3 da especificação docker compose. A opção `services:` indica que especificaremos serviços, para execução de containers. Dentro de `services:` temos o service `file-server`, que representa o container do servidor de arquivos. A opção `image: file-server` dentro de `file-server` indica que utilizaremos a image `file-server` construída anteriormente, como imagem base do nosso container. A opção `volumes:`, com o valor `- ./host:/files/host`, indica a montagem da pasta `./host` no host em `/files/host` no container. A opção `ports:`, com o valor `- 8000:8000`, indica que o serviço `file-server` irá utilizar a expor a porta 8000 no host, a partir da porta 8000 do container.
+
+Executar o seguinte comando para construção e execução do container utilizando Docker Compose:
+```shell
+docker-compose up -d
+```
+O parâmetro `-d` indica para executar o container em background.
+
+Atualizar a página de acesso na porta 8000. Explorar os arquivos listados pelo servidor.
+
+Incluir no arquivo `docker-compose.yml` o novo volume `vol-host` gerido pelo Docker:
+```shell
+nano docker-compose.yaml
+```
+
+Alterar para:
+```yaml
+version: '3'
+services:
+  file-server:
+    image: file-server
+    volumes:
+      - ./host:/files/host
+      - vol-host:/files/vol-host
+    ports:
+      - 8000:8000
+volumes:
+  vol-host:
+      driver: local
+```
+
+Com a opção `volumes:` no final do arquivo, podemos especificar quais volumes deverão ser criados, e seus drivers correspondentes. Neste caso utilizaremos o driver `local`, que indica que o volume será criado em um diretório local no host. Outros drivers podem ser utilizados, para utilização de volumes remotos, como `NFS`, `CIFS`, `Amazon S3`, etc. Adicionamos o valor `- vol-host:/files/vol-host` em volumes do service `file-server`, indicando a montagem do volume `vol-host` criado localmente em `/files/vol-host` no container.
+
+Executar os comandos a seguir:
+```shell
+# Atualizar o service `file-server` com as novas configurações, recriando o container
+docker-compose up -d
+
+# Entrar no container
+docker-compose exec file-server sh
+
+# Criar um arquivo no container
+echo "Arquivo que não está em um volume" > arquivo.txt
+
+# Entrar no volume `vol-host`
+cd vol-host
+
+# Criar um arquivo no volume montado
+echo "Arquivo de teste no volume vol-host" > vol.txt
+
+# Sair do container
+exit
+```
+
+Atualizar a página de acesso na porta 8000.  Clicar em `arquivo.txt` e verificar seu conteúdo. Voltar para a página anterior. Clicar em `vol-host/`, em seguida clicar em `vol.txt` e verificar seu conteúdo.
+
+Executar os comandos a seguir:
+```shell
+# Listar os services
+docker-compose ps
+
+# Parar o service `file-server`
+docker-compose stop file-server
+
+# Remover o service `file-server`, destruindo o container
+docker-compose rm file-server
+
+# Pressione y seguido de Enter para remover o container file-server
+# Validar a remoção do container
+docker-compose ps
+
+# Criar um novo service `file-server`
+docker-compose up -d
+```
+
+Atualizar a página de acesso na porta 8000. Observe que o arquivo `arquivo.txt` não aparece na listagem de arquivos. Como ele foi criado em um diretório que não existia um volume montado, quando excluímos o container através do comando `docker-compose rm file-server`, todos os arquivos que não estavam em volumes também foram removidos. O arquivo `teste.txt` se manteve na listagem de arquivos, devido a ele estar contido na imagem base do container. Observe que os arquivos criados em volumes, se mantiveram na listagem de arquivos.
+
+Executar os comandos a seguir:
+```shell
+# Visualizar logs do service file-server
+docker-compose logs file-server
+
+# Criar arquivo que jogaremos no volume `vol-host`
+echo "Arquivo que jogaremos no volume via cp" > cp.txt
+
+# Listar os containers
+docker-compose ps
+# Obter o nome do container, através da coluna `Name`. Utilizaremo de exemplo o nome do container `lab03_file-server_1`. Utilizar o nome que aparecer para você.
+
+# Copiar o arquivo `cp.txt` para o caminho `/files/vol-host/cp.txt` dentro do service `file-server`
+# docker cp <caminho do arquivo dentro do host> <nome do container>:<caminho do arquivo dentro do container>
+docker cp cp.txt lab03_file-server_1:/files/vol-host/cp.txt
+
+# Deletar o arquivo `cp.txt` do host
+rm cp.txt
+```
+
+Atualizar a página de acesso na porta 8000. Clicar em `vol-host/` e em seguida clicar em `cp.txt`. Observe que o arquivo `cp.txt` foi copiado para dentro do volume `vol-host`.
+
+Para destruir todos os services, e redes associadas, executar o seguinte comando:
+```shell
+docker-compose down
+```
