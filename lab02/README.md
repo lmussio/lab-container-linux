@@ -12,6 +12,8 @@ su ubuntu
 # Entrar no diretório home do usuário ubuntu
 cd /home/ubuntu
 # Utilizaremos o gerenciador de pacotes snap para instalar o Docker
+sudo apt update
+sudo apt install -y snapd
 sudo snap install docker
 ```
 
