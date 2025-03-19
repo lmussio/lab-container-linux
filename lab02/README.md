@@ -419,7 +419,7 @@ services:
       - 8000:8000
 volumes:
   vol-host:
-      driver: local
+    driver: local
 ```
 
 Com a opção `volumes:` no final do arquivo, podemos especificar quais volumes deverão ser criados, e seus drivers correspondentes. Neste caso utilizaremos o driver `local`, que indica que o volume será criado em um diretório local no host. Outros drivers podem ser utilizados, para utilização de volumes remotos, como `NFS`, `CIFS`, `Amazon S3`, etc. Adicionamos o valor `- vol-host:/files/vol-host` em volumes do service `file-server`, indicando a montagem do volume `vol-host` criado localmente em `/files/vol-host` no container.
