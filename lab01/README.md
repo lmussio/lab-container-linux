@@ -310,16 +310,17 @@ sudo nano /etc/sysctl.conf
 Agora limitaremos a criação de processos no container, através da configuração do cgroup.
 ### No host
 ```shell
-# Criar um diretório cnt/lab01 no cgroup pids. O diretório /sys/fs/cgroup é um diretório de arquivos que contém 
-# os grupos de controle para os processos Linux. Quando criamos uma nova pasta dentro de /sys/fs/cgroup/<cgroup>, 
-# o Kernel Linux cria um grupo de controle dedicado, onde podemos especificar os processos que serão geridos por ele.
-mount -t tmpfs cgroup_root /sys/fs/cgroup
-mkdir -p /sys/fs/cgroup/pids
-mount -t cgroup -o pids none /sys/fs/cgroup/pids
-mkdir -p /sys/fs/cgroup/pids/cnt/lab01
+# Criar um diretório cnt/lab01 no diretório /sys/fs/cgroup. Quando criamos uma nova pasta 
+# dentro de /sys/fs/cgroup/<cgroup>, o Kernel Linux cria um grupo de controle dedicado,
+# onde podemos especificar os processos que serão geridos por ele.
+mkdir /sys/fs/cgroup/cnt
+mkdir /sys/fs/cgroup/cnt/lab01
+
+# Habilitar o controlador de PIDs no nível acima
+echo +pids | tee /sys/fs/cgroup/cnt/cgroup.subtree_control
 
 # Limitar a quantidade de processos que podem ser criados dentro do container em 3
-echo 3 > /sys/fs/cgroup/pids/cnt/lab01/pids.max
+echo 3 | tee /sys/fs/cgroup/cnt/lab01/pids.max
 ```
 
 ---
@@ -350,7 +351,7 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 # Nesse caso, serão os dois shells que estão rodando dentro do container.
 CNT_PID=$(lsns -t pid | grep "sh -v" | awk '{print $4}')
 # Configurar o cgroup criado anteriormente, para controlar os processos em execução dentro do container
-for pid in $CNT_PID; do echo "$pid" > /sys/fs/cgroup/pids/cnt/lab01/cgroup.procs; done
+for pid in $CNT_PID; do echo "$pid" | tee /sys/fs/cgroup/cnt/lab01/cgroup.procs; done
 ```
 
 ### Terminal 1 (`Tab 2`)
@@ -456,4 +457,5 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ## Documentação de comandos shell
 Existe o site `explainshell.com` que podemos passar um comando shell através da seguinte URI: `https://explainshell.com/explain?cmd=<comando shell>`. Exemplo:
 `https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT`
+
 
