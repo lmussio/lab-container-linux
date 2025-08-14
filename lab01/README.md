@@ -328,13 +328,13 @@ echo 3 | tee /sys/fs/cgroup/cnt/lab01/pids.max
 
 ![image](https://github.com/lmussio/lab-container-linux/assets/7672988/96f21b44-8156-47b5-bf44-ee05f90a96ad)
 
-Por exemplo, utilizaremos a `Tab 2` criada, para o `Terminal 1`:
+Por exemplo, utilizaremos a `Tab 2` criada, para o `Terminal 2`:
 
 ![image](https://github.com/lmussio/lab-container-linux/assets/7672988/a06fa636-d19c-4b0c-9150-256667ebbc65)
 
 ---
 
-### Terminal 1 (`Tab 2`)
+### Terminal 2 (`Tab 2`)
 Em em segundo terminal, realizar os seguintes comandos:
 ```shell
 # Trocar para o usuário root
@@ -354,7 +354,7 @@ CNT_PID=$(lsns -t pid | grep "sh -v" | awk '{print $4}')
 for pid in $CNT_PID; do echo "$pid" | tee /sys/fs/cgroup/cnt/lab01/cgroup.procs; done
 ```
 
-### Terminal 1 (`Tab 2`)
+### Terminal 2 (`Tab 2`)
 ```shell
 # Criar um novo processo com o comando sleep, mantendo ele em execução por 30 segundos
 sleep 30 &
@@ -373,7 +373,7 @@ sleep 30 &
 echo max > /sys/fs/cgroup/pids/cnt/lab01/pids.max
 ```
 
-### Terminal 1 (`Tab 2`)
+### Terminal 2 (`Tab 2`)
 ```shell
 # Criar novos processos com o comando sleep, mantendo ele em execução por 30 segundos
 sleep 30 &
@@ -457,5 +457,6 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ## Documentação de comandos shell
 Existe o site `explainshell.com` que podemos passar um comando shell através da seguinte URI: `https://explainshell.com/explain?cmd=<comando shell>`. Exemplo:
 `https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT`
+
 
 
