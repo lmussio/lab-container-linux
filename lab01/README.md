@@ -384,7 +384,7 @@ sleep 30 &
 # Observer que agora não existe limite na criação de processos.
 ```
 
-## Limpeza
+## Limpeza (`Tab 1`)
 Para removermos as configurações realizadas nesse laboratório, utilizar os seguintes comandos:
 ```shell
 # Desmontar recursivamente o diretório fs/merged. 
@@ -457,6 +457,7 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ## Documentação de comandos shell
 Existe o site `explainshell.com` que podemos passar um comando shell através da seguinte URI: `https://explainshell.com/explain?cmd=<comando shell>`. Exemplo:
 `https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT`
+
 
 
 
