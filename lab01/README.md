@@ -402,7 +402,7 @@ ip link del meu-switch
 ip netns del cnt
 # Encerrar todos os terminais dentro de container (Tab 2, Tab 3, etc.), utilizando o comando `exit`
 # Remover cgroups criados
-$(cd /sys/fs/cgroup/pids && rmdir -p cnt/lab01)
+$(cd /sys/fs/cgroup/ && rmdir -p cnt/lab01)
 ```
 
 
@@ -457,6 +457,7 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ## Documentação de comandos shell
 Existe o site `explainshell.com` que podemos passar um comando shell através da seguinte URI: `https://explainshell.com/explain?cmd=<comando shell>`. Exemplo:
 `https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT`
+
 
 
 
