@@ -1,7 +1,7 @@
 # Lab01 - Criação de um container Linux
 > [Voltar](../README.md)
 
-Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 24.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
+Nesse laboratório, vamos criar um container Linux, através de uma VM Ubuntu Server 24.04. Utilizar um ambiente [Ubuntu 24.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). 
 
 ---
 
@@ -457,6 +457,7 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ## Documentação de comandos shell
 Existe o site `explainshell.com` que podemos passar um comando shell através da seguinte URI: `https://explainshell.com/explain?cmd=<comando shell>`. Exemplo:
 `https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT`
+
 
 
 
