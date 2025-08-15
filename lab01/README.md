@@ -370,7 +370,7 @@ sleep 30 &
 ### No host (`Tab 1`)
 ```shell
 # Remover o limite imposto anteriormente
-echo max > /sys/fs/cgroup/pids/cnt/lab01/pids.max
+echo max | tee /sys/fs/cgroup/cnt/lab01/pids.max
 ```
 
 ### Terminal 2 (`Tab 2`)
@@ -457,6 +457,7 @@ ip netns exec cnt unshare --mount --pid --fork --mount-proc=fs/merged/proc chroo
 ## Documentação de comandos shell
 Existe o site `explainshell.com` que podemos passar um comando shell através da seguinte URI: `https://explainshell.com/explain?cmd=<comando shell>`. Exemplo:
 `https://explainshell.com/explain?cmd=iptables -I FORWARD -i meu-switch -o meu-switch -j ACCEPT`
+
 
 
 
