@@ -74,7 +74,7 @@ cd lab02
 ## 2. Docker CLI
 Criaremos um container Docker utilizando o comando `docker`.
 
-### 2.1. Terminal 1 (`Tab 2`)
+### 2.1. Terminal 2 (`Tab 2`)
 Abrir um novo terminal e executar os comandos a seguir.
 ```shell
 # Logar com usuário ubuntu
@@ -135,8 +135,8 @@ cat templates/index.html
 exit
 ```
 
-### 2.3. Terminal 1 (`Tab 2`)
-Voltar no terminal 1, e interromper a execução do container, clicando no terminal e pressionando `Ctrl+C`.
+### 2.3. Terminal 2 (`Tab 2`)
+Voltar no terminal 2, e interromper a execução do container, clicando no terminal e pressionando `Ctrl+C`.
 
 ---
 
@@ -207,7 +207,7 @@ docker ps -a
 # Verificar o consumo de recursos do container
 docker stats hello-world
 # Recarregue a página da aba aberta na porta 8888 (exemplo: https://dd457848-912e-4902-9173-2933c4c45f46-10-244-4-206-8888.saci.r.killercoda.com/)
-# e observe o consumo dos recursos mudarem comparando com o que está sendo apresentado no `Terminal 1`.
+# e observe o consumo dos recursos mudarem comparando com o que está sendo apresentado no `Terminal 2`.
 # Pressione `Ctrl+C` para interromper o comando `docker stats`.
 
 # Obter os eventos Docker gerados na última hora
@@ -216,7 +216,7 @@ docker events --since=1h
 
 # Conectar na entrada e saída padrão do container hello-world
 docker attach hello-world
-# Recarregue a página da aba aberta na porta 8888 e volte para o `Terminal 1`. Observe que o log de acesso ao container que conectamos, aparece no terminal. Isso ocorre devido a estarmos conectados à saída padrão do container.
+# Recarregue a página da aba aberta na porta 8888 e volte para o `Terminal 2`. Observe que o log de acesso ao container que conectamos, aparece no terminal. Isso ocorre devido a estarmos conectados à saída padrão do container.
 # Pressione Ctrl+C e observe que interrompemos a execução do serviço dentro do container. Isso ocorre devido a estarmos conectados à entrada padrão do container, que ao pressionarmos Ctrl+C, enviamos um sinal de interrupção (SIGINT) para o serviço em execução.
 
 # Listar todos os containers
@@ -494,3 +494,4 @@ Para destruir todos os services, e redes associadas, executar o seguinte comando
 ```shell
 docker-compose down
 ```
+
