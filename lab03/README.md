@@ -95,7 +95,7 @@ spec:
           image: rancher/hello-world # Imagem do container
           imagePullPolicy: "Always" # Indica que a imagem do container será sempre atualizada
           ports:
-            - containerPort: 8080 # Porta do container
+            - containerPort: 80 # Porta do container
               name: http-port # Nome da porta, para uso no arquivo de configuração do tipo Service
           env: # Variáveis de ambiente a serem inseridas no container
             - name: FILES_BASEPATH
@@ -327,4 +327,5 @@ Para destruir todos os recursos criados, executar o seguinte comando:
 # Deletar todos os recursos listados nos arquivos .yaml da pasta corrente
 kubectl delete -f .
 ```
+
 
