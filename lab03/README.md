@@ -1,7 +1,7 @@
 # Lab03 - Criação de pods K8S
 > [Voltar](../README.md)
 
-Nesse laboratório, iremos criar pods Kubernetes, utilizando o [k3s](https://k3s.io/) da [CNCF](https://www.cncf.io/projects/k3s/) para criação do cluster K8S, através de uma VM Ubuntu Server 20.04. Utilizar um ambiente [Ubuntu 20.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
+Nesse laboratório, iremos criar pods Kubernetes, utilizando o [k3s](https://k3s.io/) da [CNCF](https://www.cncf.io/projects/k3s/) para criação do cluster K8S, através de uma VM Ubuntu Server 24.04. Utilizar um ambiente [Ubuntu 24.04 no Killercoda](https://killercoda.com/playgrounds/scenario/ubuntu). Utilizaremos o programa de linha de comando `kubectl` para administração do cluster.
 
 ## 1. Preparação do ambiente para laboratório
 Para esse laboratório, precisaremos realizar a instalação do K3S no host, que chamaremos de `Node 1`.
@@ -92,7 +92,7 @@ spec:
     spec:
       containers:
         - name: hello-world # Nome do container
-          image: containertools/hello-world # Imagem do container
+          image: rancher/hello-world # Imagem do container
           imagePullPolicy: "Always" # Indica que a imagem do container será sempre atualizada
           ports:
             - containerPort: 8080 # Porta do container
@@ -327,3 +327,4 @@ Para destruir todos os recursos criados, executar o seguinte comando:
 # Deletar todos os recursos listados nos arquivos .yaml da pasta corrente
 kubectl delete -f .
 ```
+
