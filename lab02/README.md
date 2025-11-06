@@ -85,14 +85,14 @@ Abrir um novo terminal e executar os comandos a seguir.
 docker --help
 # Listar os containers em execução
 docker ps
-# Baixar a imagem containertools/hello-world do Docker Hub (https://hub.docker.com/r/containertools/hello-world)
-docker pull containertools/hello-world
+# Baixar a imagem containertools/hello-world do Docker Hub (https://hub.docker.com/r/rancher/hello-world)
+docker pull rancher/hello-world
 # Listar as imagens baixadas
 docker images
-# Criar um container a partir da imagem containertools/hello-world
-docker run -it -p 8888:8080 --name hello-world containertools/hello-world
+# Criar um container a partir da imagem rancher/hello-world
+docker run -it -p 8888:80 --name hello-world rancher/hello-world
 # `-it`: Executar o container em modo interativo
-# `-p 8888:8080`: Expor a porta 8080 do container na porta de rede 8888 do host
+# `-p 8888:80`: Expor a porta 80 do container na porta de rede 8888 do host
 # `--name hello-world`: Nomear o container de hello-world
 # `containertools/hello-world`: Imagem a partir da qual o container será criado
 ```
@@ -124,13 +124,10 @@ cd /home/ubuntu/lab02
 docker ps
 # Entrar no container hello-world
 docker exec -it hello-world sh
-# Recarregue a página http://192.168.56.102:8888 e observe que a contagem de PIDs aumentou.
 # Listar os arquivos dentro do container
 ls -la
 # Verificar o sistema operacional atual (Alpine) 
 cat /etc/os-release
-# Verificar o código fonte da página HTML que acessamos no navegador
-cat templates/index.html
 # Sair do container
 exit
 ```
@@ -146,7 +143,7 @@ Voltar no terminal 2, e interromper a execução do container, clicando no termi
 
 ```shell
 # Criar um container em background com o parâmetro `-d`
-docker run -it -d -p 8888:8080 --name hello-world containertools/hello-world
+docker run -it -d -p 8888:80 --name hello-world rancher/hello-world
 # Observe que ocorreu um erro, indicando o nome `hello-world` já está em uso por outro container. Para isso, precisaremos deletar o container anterior que criamos
 
 # Listar os containers em execução
@@ -161,7 +158,7 @@ docker ps -a
 docker rm hello-world
 
 # Criar um container em background
-docker run -itd -p 8888:8080 --name hello-world containertools/hello-world
+docker run -it -d -p 8888:80 --name hello-world rancher/hello-world
 
 # Listar o container criado
 docker ps
@@ -494,6 +491,7 @@ Para destruir todos os services, e redes associadas, executar o seguinte comando
 ```shell
 docker-compose down
 ```
+
 
 
 
