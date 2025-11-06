@@ -81,10 +81,6 @@ Criaremos um container Docker utilizando o comando `docker`.
 ### 2.1. Terminal 2 (`Tab 2`)
 Abrir um novo terminal e executar os comandos a seguir.
 ```shell
-# Logar com usuário ubuntu
-su ubuntu
-# Entrar no diretório do lab02
-cd /home/ubuntu/lab02
 # Listar os comandos disponíveis no docker
 docker --help
 # Listar os containers em execução
@@ -498,5 +494,6 @@ Para destruir todos os services, e redes associadas, executar o seguinte comando
 ```shell
 docker-compose down
 ```
+
 
 
