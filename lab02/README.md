@@ -66,7 +66,11 @@ docker pull alpine
 
 Acessar a pasta home do usuário e criar a pasta lab02:
 ```shell
-cd
+# Logar no usuário `ubuntu`
+su ubuntu
+# Caso pedir senha, utilizar a senha `ubuntu`
+# Entrar no diretório home do usuário ubuntu
+cd /home/ubuntu
 mkdir lab02
 cd lab02
 ```
@@ -494,4 +498,5 @@ Para destruir todos os services, e redes associadas, executar o seguinte comando
 ```shell
 docker-compose down
 ```
+
 
